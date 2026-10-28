@@ -9,6 +9,7 @@ import { buscarJogos } from "./lib/notion.js";
 import { acharAppId, detalhes, limparCache, normalizar } from "./lib/steam.js";
 import { criarTwitch, PREFIXO, PREFIXO_ENTRE, tituloRecompensa } from "./lib/twitch.js";
 import { criarPublicador } from "./lib/publico.js";
+import { EXTRAS } from "./lib/extras.js";
 
 const PORTA = Number(process.env.PORTA || 3000);
 const BASE = `http://localhost:${PORTA}`;
@@ -59,7 +60,9 @@ let steamInfo = {}; // id da página -> dados da Steam
 
 /* ---------- estado enviado para as telas ---------- */
 function jogoPublico(j, lista = "principal") {
-  const s = steamInfo[j.id] || {};
+  // dados da Steam; para jogos fora da Steam (Valorant, Hytale...), os guardados em lib/extras.js
+  const s = { ...EXTRAS[normalizar(j.nome)], ...steamInfo[j.id] };
+  if (!s.generos?.length) s.generos = EXTRAS[normalizar(j.nome)]?.generos;
   return {
     id: j.id, nome: j.nome, opcao: j.opcao, entreLives: !!j.entreLives, frequente: !!j.frequente,
     status: j.status, tipo: j.tipo, plataforma: j.plataforma, adquirido: j.adquirido,
@@ -74,7 +77,8 @@ function jogoPublico(j, lista = "principal") {
     generos: s.generos || [],
     lancamento: s.lancamento || null,
     desenvolvedora: s.desenvolvedora || null,
-    lojaUrl: s.lojaUrl || null
+    lojaUrl: s.lojaUrl || null,
+    lojaNome: s.lojaNome || "Ver na Steam"
   };
 }
 function estadoPublico() {
@@ -90,7 +94,7 @@ function estadoPublico() {
     // votação entre lives: as telas abertas com ?lista=entre usam este bloco
     entre: { opcoes: entre, total: entre.reduce((a, j) => a + j.votos, 0), ultimos: votacao.ultimosEntre, custo: LISTAS.entre.custo() },
     // Frequentes (Frequência "Fixo"): só para mostrar, sem votação
-    frequentes: todos.filter(j => j.frequente).map(({ id, nome, capa, generos }) => ({ id, nome, capa, generos })),
+    frequentes: todos.filter(j => j.frequente),
     aoVivo: twitch.status().conectado
   };
 }
@@ -239,7 +243,7 @@ async function completarSteam() {
 
 /* ---------- servidor ---------- */
 const TIPOS = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".json": "application/json", ".woff2": "font/woff2", ".webp": "image/webp", ".txt": "text/plain; charset=utf-8" };
-const PAGINAS = { "/": "index.html", "/series": "series.html", "/jogos": "jogos.html", "/biblioteca": "biblioteca.html", "/telao": "telao.html", "/overlay": "overlay.html" };
+const PAGINAS = { "/": "index.html", "/series": "series.html", "/jogos": "jogos.html", "/frequentes": "frequentes.html", "/biblioteca": "biblioteca.html", "/telao": "telao.html", "/overlay": "overlay.html" };
 
 function json(res, codigo, dados) {
   res.writeHead(codigo, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });

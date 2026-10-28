@@ -1,10 +1,12 @@
 // Qual votação esta tela mostra: a principal ou a entre lives (endereço com ?lista=entre)
 // (a página de Jogos do site marca isso no <html data-lista="entre">)
-export const LISTA = (new URLSearchParams(location.search).get("lista") || document.documentElement.dataset.lista) === "entre" ? "entre" : "principal";
+const PEDIDA = new URLSearchParams(location.search).get("lista") || document.documentElement.dataset.lista;
+export const LISTA = ["entre", "frequentes"].includes(PEDIDA) ? PEDIDA : "principal";
 
 // No PC do Ric as telas falam direto com o servidor; no site público (Vercel) leem a cópia do Supabase
 export const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
-const daLista = s => (LISTA === "entre" && s.entre ? { ...s, ...s.entre } : s);
+// Frequentes não têm votação: a página usa a lista deles no lugar das opções
+const daLista = s => (LISTA === "entre" && s.entre ? { ...s, ...s.entre } : LISTA === "frequentes" ? { ...s, opcoes: s.frequentes || [] } : s);
 
 // Recebe o estado da votação e cada voto na hora em que acontece.
 // Com ?lista=entre, a tela recebe os dados da votação entre lives no lugar da principal.
@@ -61,7 +63,7 @@ export const TEXTOS_LISTAS = {
   principal: { titulo: "Próxima série", pergunta: "Qual a próxima série?", chip: "Série: nome da série", singular: "série" },
   entre: { titulo: "Jogos curtos", pergunta: "Qual o próximo jogo curto?", chip: "Jogo: nome do jogo", singular: "jogo curto" }
 };
-export const TEXTOS = TEXTOS_LISTAS[LISTA];
+export const TEXTOS = TEXTOS_LISTAS[LISTA] || TEXTOS_LISTAS.principal;
 
 // quanto da meta o jogo já juntou (0 a 100)
 export function porcentagemMeta(j) {

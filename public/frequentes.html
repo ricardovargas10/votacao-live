@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR" data-lista="frequentes">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Frequentes · Ric Gameplays</title>
+<link rel="icon" type="image/webp" href="/img/ric.webp">
+<link rel="apple-touch-icon" href="/img/ric.webp">
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="container">
+    <a class="marca" href="/"><img src="/img/ric.webp" alt="" width="36" height="36">Ric Gameplays</a>
+    <ul class="nav-links">
+      <li><a href="/series" aria-current="page">Séries</a></li>
+      <li><a href="/jogos">Jogos curtos</a></li>
+      <li><a href="/frequentes" aria-current="page">Frequentes</a></li>
+      <li><a href="/biblioteca">Biblioteca</a></li>
+      <li><a href="/telao">Telão</a></li>
+    </ul>
+    <span class="selo" id="selo"><span class="ponto"></span><span id="seloTxt">Votação aberta</span></span>
+  </div>
+</nav>
+
+<main>
+  <section class="hero hero-curto">
+    <div class="container">
+      <div class="eyebrow">Sempre no canal</div>
+      <h1 class="display">Frequentes</h1>
+      <p class="lead">Os jogos que o Ric joga sempre, em qualquer semana. Esses não entram na votação: aparecem nas lives de qualquer jeito.</p>
+    </div>
+  </section>
+
+  <section class="secao" id="galeria">
+    <div class="container">
+      <div class="secao-topo">
+        <div>
+          <div class="eyebrow">Na rotina</div>
+          <h2 class="display">Os jogos de sempre</h2>
+        </div>
+        <p>Esses aparecem nas lives sem precisar de voto.</p>
+      </div>
+      <div class="galeria" id="cards"></div>
+    </div>
+  </section>
+
+  <section class="secao" id="sinopses">
+    <div class="container">
+      <div class="secao-topo">
+        <div>
+          <div class="eyebrow">Antes de votar</div>
+          <h2 class="display">Sobre cada jogo</h2>
+        </div>
+        <p>Um resumo de cada jogo, sem spoiler.</p>
+      </div>
+      <div class="sinopses" id="listaSinopses"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <span>Ric Gameplays · lives terça, quinta e sábado às 19h</span>
+    <span>Twitch · YouTube · Kick</span>
+  </div>
+</footer>
+
+<script type="module" src="/js/home.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 // Páginas Séries, Jogos e Biblioteca: cada página desenha só as partes que ela tem.
 // Séries e Jogos usam o mesmo código; a página de Jogos tem <html data-lista="entre">.
-import { conectar, ordenar, el, capa, iniciais, porcentagemMeta } from "./ao-vivo.js";
+import { conectar, ordenar, el, capa, iniciais, porcentagemMeta, LISTA } from "./ao-vivo.js";
 import { Roleta } from "./roleta.js";
 
 const ALTURA = 92;
@@ -100,9 +100,14 @@ function renderGaleria() {
     // no card, só os gêneros da Steam (status, tipo e "já tem" são coisas internas do Ric)
     (j.generos || []).slice(0, 2).forEach(g => props.append(pilula(g, "roxo")));
     const rodape = el("div", "rodape");
-    const votos = el("span");
-    votos.append(el("b", null, j.votos), document.createTextNode(` de ${j.metaVotos} votos · ${porcentagemMeta(j)}% da meta`));
-    rodape.append(votos, el("span", "posicao", j.votos ? `${i + 1}º` : "–"));
+    if (LISTA === "frequentes") {
+      // Frequentes não têm votação: o rodapé só diz que o jogo aparece sempre
+      rodape.append(el("span", null, "Sempre no canal"));
+    } else {
+      const votos = el("span");
+      votos.append(el("b", null, j.votos), document.createTextNode(` de ${j.metaVotos} votos · ${porcentagemMeta(j)}% da meta`));
+      rodape.append(votos, el("span", "posicao", j.votos ? `${i + 1}º` : "–"));
+    }
     corpo.append(el("h3", null, j.nome), props, rodape);
     card.append(capa(j.capa, j.nome), corpo);
     box.append(card);
@@ -120,7 +125,7 @@ function renderSinopses() {
     [j.generos?.join(", "), j.lancamento, j.desenvolvedora].filter(Boolean).forEach(m => meta.append(el("span", null, m)));
     texto.append(el("h3", "display", j.nome), meta);
     texto.append(j.sinopse ? el("p", null, j.sinopse) : el("p", "sem", "Sinopse ainda não encontrada."));
-    if (j.lojaUrl) { const a = el("a", "link-loja", "Ver na Steam ↗"); a.href = j.lojaUrl; a.target = "_blank"; a.rel = "noopener"; texto.append(a); }
+    if (j.lojaUrl) { const a = el("a", "link-loja", `${j.lojaNome || "Ver na Steam"} ↗`); a.href = j.lojaUrl; a.target = "_blank"; a.rel = "noopener"; texto.append(a); }
     item.append(capa(j.fundo || j.capa, j.nome), texto);
     box.append(item);
   });
@@ -214,7 +219,7 @@ function renderTudo() {
   const selo = $("selo");
   if (selo) { selo.classList.toggle("aovivo", !!estado.aoVivo); $("seloTxt").textContent = estado.aoVivo ? "Contando ao vivo" : "Votação aberta"; }
   // galeria, sinopses e tabela só redesenham quando algo muda nelas
-  const nova = JSON.stringify([estado.opcoes.map(j => [j.id, j.capa, j.sinopse, j.votos, j.metaVotos]), estado.biblioteca.map(j => [j.id, j.nome, j.opcao, j.entreLives, j.frequente, j.adquirido, j.capa, j.preco, j.promo, j.precoSteam, j.generos, j.lancamento])]);
+  const nova = JSON.stringify([estado.opcoes.map(j => [j.id, j.capa, j.fundo, j.sinopse, j.votos, j.metaVotos]), estado.biblioteca.map(j => [j.id, j.nome, j.opcao, j.entreLives, j.frequente, j.adquirido, j.capa, j.preco, j.promo, j.precoSteam, j.generos, j.lancamento])]);
   if (nova !== assinatura) {
     assinatura = nova;
     if ($("cards")) renderGaleria();
