@@ -40,11 +40,13 @@ const LISTAS = {
 const nomeLista = l => (LISTAS[l] ? l : "principal");
 
 // Meta de cada jogo: preço cheio na Steam × 100 ChicoPoints (sem preço na Steam, usa o "Preço" do Notion).
-// Jogo grátis ou barato fica com a meta mínima da lista. Em votos: meta ÷ custo do voto, arredondando para cima.
+// Jogo grátis, barato ou que o Ric já tem (Sim ou Família Steam) fica com a meta mínima da lista.
+// Em votos: meta ÷ custo do voto, arredondando para cima.
 const PONTOS_POR_REAL = 100;
 function metaDoJogo(j, lista) {
   const L = LISTAS[lista];
-  const preco = steamInfo[j.id]?.precoCheio ?? j.preco ?? 0;
+  const jaTem = j.adquirido === "Sim" || j.adquirido === "Família Steam";
+  const preco = jaTem ? 0 : steamInfo[j.id]?.precoCheio ?? j.preco ?? 0;
   const pontos = Math.max(L.metaMinima, Math.round(preco * PONTOS_POR_REAL));
   return { metaPontos: pontos, metaVotos: Math.ceil(pontos / L.custo()) };
 }
