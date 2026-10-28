@@ -31,7 +31,7 @@ votacao.vistos = votacao.vistos || [];
 votacao.votosEntre = votacao.votosEntre || {};
 votacao.ultimosEntre = votacao.ultimosEntre || [];
 
-// Duas votações: Séries (jogos longos, "É opção?" no Notion) e Jogos (rápidos, entre lives, "Entre lives?")
+// Duas votações: Séries (jogos longos, "É opção?" no Notion) e Jogos (rápidos, entre lives, "Jogo curto?")
 // prefixosAntigos: nomes que as recompensas já tiveram, para ainda reconhecer resgates feitos com eles
 const LISTAS = {
   principal: { campo: "opcao", votos: "votos", ultimos: "ultimos", zerado: "zeradoEm", prefixo: PREFIXO, prefixosAntigos: ["Voto: "], chave: id => id, custo: () => conta.twitch.custo || 500, metaMinima: 10000, prompt: "Seu voto soma pontos para a próxima série." },

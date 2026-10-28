@@ -23,7 +23,7 @@ function caixa(capaId, infoId, bloco, vazio) {
 conectar({
   aoEstado: s => {
     caixa("capaSeries", "infoSeries", s, "Nenhuma série na votação agora.");
-    caixa("capaJogos", "infoJogos", s.entre, "Nenhum jogo na votação agora.");
+    caixa("capaJogos", "infoJogos", s.entre, "Nenhum jogo curto na votação agora.");
     $("selo").classList.toggle("aovivo", !!s.aoVivo);
     $("seloTxt").textContent = s.aoVivo ? "Contando ao vivo" : "Votação aberta";
   }

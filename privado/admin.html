@@ -80,10 +80,10 @@
 
     <section class="bloco">
       <h2>Recompensas</h2>
-      <p>Cria "Série: nome" para cada jogo marcado em É opção? e "Jogo: nome" para cada um marcado em Entre lives? no Notion. Desmarcou, a recompensa desliga sozinha. A meta de cada um é o preço cheio na Steam × 100 ChicoPoints.</p>
+      <p>Cria "Série: nome" para cada jogo marcado em É opção? e "Jogo: nome" para cada um marcado em Jogo curto? no Notion. Desmarcou, a recompensa desliga sozinha. A meta de cada um é o preço cheio na Steam × 100 ChicoPoints.</p>
       <label for="custo">Custo de cada voto nas séries (ChicoPoints)</label>
       <input class="campo" id="custo" type="number" min="1">
-      <label for="custoEntre">Custo de cada voto nos jogos entre lives (ChicoPoints)</label>
+      <label for="custoEntre">Custo de cada voto nos jogos curtos (ChicoPoints)</label>
       <input class="campo" id="custoEntre" type="number" min="1">
       <div class="acoes"><button class="btn primario" id="criarRecompensas">Criar ou atualizar recompensas</button></div>
       <div class="relatorio" id="relatorio"></div>
@@ -101,12 +101,12 @@
     </section>
 
     <section class="bloco">
-      <h2>Votos dos jogos (entre lives)</h2>
-      <p>Jogos marcados em Entre lives? no Notion. Placar separado das séries.</p>
+      <h2>Votos dos jogos curtos</h2>
+      <p>Jogos marcados em Jogo curto? no Notion. Placar separado das séries.</p>
       <div id="votosEntre"></div>
       <div class="acoes">
-        <button class="btn" id="simularEntre">Simular 12 votos nos jogos</button>
-        <button class="btn perigo" id="zerarEntre">Zerar jogos</button>
+        <button class="btn" id="simularEntre">Simular 12 votos nos jogos curtos</button>
+        <button class="btn perigo" id="zerarEntre">Zerar jogos curtos</button>
       </div>
     </section>
 
@@ -214,7 +214,7 @@ function renderAdmin() {
 
   const l = $("links"); l.replaceChildren();
   [["Overlay séries", admin.links.overlay, "Largura 470 · Altura 400"], ["Telão séries", admin.links.telao, "Largura 1920 · Altura 1080"],
-   ["Overlay jogos", admin.links.overlayEntre, "Largura 470 · Altura 400"], ["Telão jogos", admin.links.telaoEntre, "Largura 1920 · Altura 1080"],
+   ["Overlay jogos curtos", admin.links.overlayEntre, "Largura 470 · Altura 400"], ["Telão jogos curtos", admin.links.telaoEntre, "Largura 1920 · Altura 1080"],
    ["Site", admin.links.site, "Para abrir no navegador"]].forEach(([nome, url, dica]) => {
     const linha = el("div", "copiar");
     const b = el("button", "btn mini", "Copiar");
@@ -227,7 +227,7 @@ function renderAdmin() {
 
 function renderLista(boxId, opcoes, lista) {
   const box = $(boxId); box.replaceChildren();
-  if (!opcoes.length) box.append(el("div", "dica", lista === "entre" ? "Nenhum jogo marcado em Entre lives? no Notion." : "Nenhum jogo marcado em É opção? no Notion."));
+  if (!opcoes.length) box.append(el("div", "dica", lista === "entre" ? "Nenhum jogo marcado em Jogo curto? no Notion." : "Nenhum jogo marcado em É opção? no Notion."));
   opcoes.forEach(j => {
     const linha = el("div", "linha-voto");
     const g = el("div", "grupo");

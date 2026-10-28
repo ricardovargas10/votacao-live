@@ -219,3 +219,5 @@ s.antes{display:block;font-size:12px;color:var(--muted)}
   .nav-links a{white-space:nowrap}
   .caixa h2{font-size:44px}
 }
+.botao.secundario{background:#fff;color:var(--text);border:1px solid var(--line-2)}
+.botao.secundario:hover{background:var(--surface)}

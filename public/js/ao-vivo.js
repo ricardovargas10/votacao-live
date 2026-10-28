@@ -59,7 +59,7 @@ async function conectarPublico({ aoEstado, aoVoto, todas }) {
 // Séries = jogos longos (votação principal); Jogos = jogos rápidos entre lives
 export const TEXTOS_LISTAS = {
   principal: { titulo: "Próxima série", pergunta: "Qual a próxima série?", chip: "Série: nome da série", singular: "série" },
-  entre: { titulo: "Próximo jogo", pergunta: "Qual o próximo jogo?", chip: "Jogo: nome do jogo", singular: "jogo" }
+  entre: { titulo: "Jogos curtos", pergunta: "Qual o próximo jogo curto?", chip: "Jogo: nome do jogo", singular: "jogo curto" }
 };
 export const TEXTOS = TEXTOS_LISTAS[LISTA];
 
