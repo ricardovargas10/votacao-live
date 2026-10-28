@@ -13,6 +13,9 @@
   #palco{position:absolute;left:50%;top:50%;width:1920px;height:1080px;padding:64px 96px;display:grid;grid-template-columns:minmax(0,1fr) 560px;grid-template-rows:auto minmax(0,1fr);column-gap:72px;row-gap:40px}
   header{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:flex-end}
   header h1{font-size:140px}
+  .voltar{display:inline-flex;align-items:center;margin-right:16px;font-size:18px;font-weight:600;color:var(--muted);text-decoration:none}
+  .voltar[hidden]{display:none}
+  .voltar:hover{color:var(--text)}
   .como{text-align:right;font-size:22px;color:var(--muted);line-height:1.7;padding-bottom:12px}
   .como .chip-voto{font-size:22px}
   .eyebrow{font-size:15px}
@@ -56,6 +59,7 @@
 <div id="palco">
   <header>
     <div>
+      <a class="voltar" id="voltar" href="/" hidden>← Voltar para o site</a>
       <span class="selo" id="selo"><span class="ponto"></span><span id="seloTxt">Votação aberta</span></span>
       <h1 class="display" style="margin-top:24px" id="pergunta">Qual o próximo jogo?</h1>
     </div>
@@ -83,7 +87,8 @@
 </div>
 
 <script type="module">
-import { conectar, ordenar, el, capa, iniciais, TEXTOS, porcentagemMeta, LISTA } from "/js/ao-vivo.js";
+import { conectar, ordenar, el, capa, iniciais, TEXTOS, porcentagemMeta, LISTA, LOCAL } from "/js/ao-vivo.js";
+document.getElementById("voltar").hidden = LOCAL;
 import { Roleta } from "/js/roleta.js";
 
 // /telao?lista=entre mostra a votação entre lives
@@ -94,7 +99,7 @@ const palco = document.getElementById("palco");
 function escala() { const s = Math.min(innerWidth / 1920, innerHeight / 1080); palco.style.transform = `translate(-50%,-50%) scale(${s})`; }
 addEventListener("resize", escala); escala();
 
-const ALTURA_MAX = 110; // linha de 100px + 10px de espaço (até 6 jogos cabem assim)
+const ALTURA_MAX = 143; // linha de 100px + 10px de espaço, podendo crescer até 30% para encher a altura
 const linhas = {};
 let estado;
 
@@ -103,6 +108,9 @@ function render() {
   const ordem = ordenar(estado.opcoes);
   const ALTURA = Math.min(ALTURA_MAX, Math.floor((box.clientHeight + 10) / Math.max(ordem.length, 1)));
   box.style.setProperty("--k", ((ALTURA - 10) / 100).toFixed(3));
+  // base alinhada: o quadro da direita termina na mesma altura do último jogo
+  const usado = ordem.length * ALTURA - 10;
+  document.querySelector("aside").style.height = usado >= 480 ? usado + "px" : "";
   const ids = new Set(ordem.map(j => j.id));
   Object.keys(linhas).forEach(id => { if (!ids.has(id)) { linhas[id].li.remove(); delete linhas[id]; } });
   ordem.forEach((j, i) => {
