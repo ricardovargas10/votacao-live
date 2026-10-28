@@ -70,7 +70,7 @@
 </div>
 
 <script type="module">
-import { conectar, ordenar, el, capa, iniciais, TEXTOS } from "/js/ao-vivo.js";
+import { conectar, ordenar, el, capa, iniciais, TEXTOS, porcentagemMeta } from "/js/ao-vivo.js";
 import { Roleta } from "/js/roleta.js";
 
 // /telao?lista=entre mostra a votação entre lives
@@ -90,7 +90,6 @@ function render() {
   const ordem = ordenar(estado.opcoes);
   const ALTURA = Math.min(ALTURA_MAX, Math.floor((box.clientHeight + 10) / Math.max(ordem.length, 1)));
   box.style.setProperty("--k", ((ALTURA - 10) / 100).toFixed(3));
-  const max = Math.max(1, ...ordem.map(j => j.votos));
   const ids = new Set(ordem.map(j => j.id));
   Object.keys(linhas).forEach(id => { if (!ids.has(id)) { linhas[id].li.remove(); delete linhas[id]; } });
   ordem.forEach((j, i) => {
@@ -109,8 +108,11 @@ function render() {
     l.li.style.top = i * ALTURA + "px";
     l.li.querySelector(".pos").textContent = i + 1;
     l.li.querySelector(".nome").textContent = j.nome;
-    l.li.querySelector(".trilho i").style.width = (j.votos / max * 100) + "%";
-    l.li.querySelector(".pct").textContent = estado.total ? Math.round(j.votos / estado.total * 100) + "%" : "0%";
+    // barra e % = quanto da meta o jogo já juntou
+    const pct = porcentagemMeta(j);
+    l.li.querySelector(".trilho i").style.width = pct + "%";
+    l.li.querySelector(".pct").textContent = `${pct}% da meta`;
+    l.li.classList.toggle("batida", pct >= 100);
     l.li.classList.toggle("lider", i === 0 && j.votos > 0);
     l.roleta.definir(j.votos);
   });
@@ -125,7 +127,7 @@ function render() {
     info.textContent = `${a.votos} ${a.votos === 1 ? "voto" : "votos"} cada`;
   } else {
     rot.textContent = "Na frente"; nome.textContent = a.nome;
-    info.textContent = `${a.votos} votos · ${a.votos - (b?.votos || 0)} à frente${b ? " de " + b.nome : ""}`;
+    info.textContent = `${a.votos} de ${a.metaVotos} votos da meta (${porcentagemMeta(a)}%) · ${a.votos - (b?.votos || 0)} à frente${b ? " de " + b.nome : ""}`;
   }
   const capaBox = document.getElementById("liderCapa");
   const chave = a && a.votos ? a.id + "|" + (a.capa || "") : "";

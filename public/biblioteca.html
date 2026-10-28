@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Biblioteca · Ric Gameplays</title>
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="container">
+    <a class="marca" href="/">Ric Gameplays</a>
+    <ul class="nav-links">
+      <li><a href="/series">Séries</a></li>
+      <li><a href="/jogos">Jogos</a></li>
+      <li><a href="/biblioteca" aria-current="page">Biblioteca</a></li>
+      <li><a href="/telao">Telão</a></li>
+    </ul>
+    <span class="selo" id="selo"><span class="ponto"></span><span id="seloTxt">Votação aberta</span></span>
+  </div>
+</nav>
+
+<main>
+  <section class="hero hero-curto" id="biblioteca">
+    <div class="container">
+      <div class="eyebrow">Lista completa</div>
+      <h1 class="display">Biblioteca</h1>
+      <p class="lead">Todos os jogos que o Ric quer jogar, já jogou ou está pensando em jogar.</p>
+      <div class="barra-filtros" style="margin-top:40px">
+        <input class="busca" id="busca" type="search" placeholder="Buscar jogo" aria-label="Buscar jogo">
+        <div id="filtros" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+      <div class="tabela-box">
+        <table>
+          <thead><tr id="cabecalho"></tr></thead>
+          <tbody id="linhas"></tbody>
+        </table>
+      </div>
+      <div class="contagem" id="contagem"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <span>Ric Gameplays · lives terça, quinta e sábado às 19h</span>
+    <span>Twitch · YouTube · Kick</span>
+  </div>
+</footer>
+
+<script type="module" src="/js/home.js"></script>
+</body>
+</html>

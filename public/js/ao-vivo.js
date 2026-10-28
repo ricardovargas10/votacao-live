@@ -1,5 +1,6 @@
 // Qual votação esta tela mostra: a principal ou a entre lives (endereço com ?lista=entre)
-export const LISTA = new URLSearchParams(location.search).get("lista") === "entre" ? "entre" : "principal";
+// (a página de Jogos do site marca isso no <html data-lista="entre">)
+export const LISTA = (new URLSearchParams(location.search).get("lista") || document.documentElement.dataset.lista) === "entre" ? "entre" : "principal";
 
 // No PC do Ric as telas falam direto com o servidor; no site público (Vercel) leem a cópia do Supabase
 export const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
@@ -7,18 +8,19 @@ const daLista = s => (LISTA === "entre" && s.entre ? { ...s, ...s.entre } : s);
 
 // Recebe o estado da votação e cada voto na hora em que acontece.
 // Com ?lista=entre, a tela recebe os dados da votação entre lives no lugar da principal.
-export function conectar({ aoEstado, aoVoto }) {
-  if (!LOCAL) return conectarPublico({ aoEstado, aoVoto });
+// todas: true entrega os votos das duas votações (o site mostra as duas)
+export function conectar({ aoEstado, aoVoto, todas = false }) {
+  if (!LOCAL) return conectarPublico({ aoEstado, aoVoto, todas });
   const fonte = new EventSource("/api/ao-vivo");
   fonte.addEventListener("estado", e => aoEstado?.(daLista(JSON.parse(e.data))));
   fonte.addEventListener("voto", e => {
     const v = JSON.parse(e.data);
-    if ((v.lista || "principal") === LISTA) aoVoto?.(v);
+    if (todas || (v.lista || "principal") === LISTA) aoVoto?.(v);
   });
   return fonte;
 }
 
-async function conectarPublico({ aoEstado, aoVoto }) {
+async function conectarPublico({ aoEstado, aoVoto, todas }) {
   const { SUPABASE_URL, SUPABASE_CHAVE } = await import("/js/config-publico.js");
   const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm");
   const sb = createClient(SUPABASE_URL, SUPABASE_CHAVE);
@@ -30,7 +32,7 @@ async function conectarPublico({ aoEstado, aoVoto }) {
     for (const lista of ["principal", "entre"]) {
       const bloco = lista === "entre" ? placar.entre : placar;
       const ult = bloco?.ultimos || [];
-      if (!primeira && lista === LISTA) {
+      if (!primeira && (todas || lista === LISTA)) {
         ult.filter(u => u.t > ultimoVisto[lista]).reverse().forEach(u => {
           const j = bloco.opcoes.find(o => o.id === u.jogoId);
           if (j) aoVoto?.({ lista, jogoId: u.jogoId, jogo: u.jogo, quem: u.quem, votos: j.votos, t: u.t });
@@ -54,9 +56,17 @@ async function conectarPublico({ aoEstado, aoVoto }) {
 }
 
 // textos que mudam entre as duas votações
-export const TEXTOS = LISTA === "entre"
-  ? { titulo: "Entre lives", pergunta: "Qual o jogo entre lives?", chip: "Entre lives: nome do jogo" }
-  : { titulo: "Próximo jogo", pergunta: "Qual o próximo jogo?", chip: "Voto: nome do jogo" };
+// Séries = jogos longos (votação principal); Jogos = jogos rápidos entre lives
+export const TEXTOS_LISTAS = {
+  principal: { titulo: "Próxima série", pergunta: "Qual a próxima série?", chip: "Série: nome da série", singular: "série" },
+  entre: { titulo: "Próximo jogo", pergunta: "Qual o próximo jogo?", chip: "Jogo: nome do jogo", singular: "jogo" }
+};
+export const TEXTOS = TEXTOS_LISTAS[LISTA];
+
+// quanto da meta o jogo já juntou (0 a 100)
+export function porcentagemMeta(j) {
+  return j.metaVotos ? Math.min(100, Math.floor(j.votos / j.metaVotos * 100)) : 0;
+}
 
 
 export function ordenar(opcoes) {

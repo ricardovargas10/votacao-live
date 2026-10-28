@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR" data-lista="entre">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jogos · Ric Gameplays</title>
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="container">
+    <a class="marca" href="/">Ric Gameplays</a>
+    <ul class="nav-links">
+      <li><a href="/series">Séries</a></li>
+      <li><a href="/jogos" aria-current="page">Jogos</a></li>
+      <li><a href="/biblioteca">Biblioteca</a></li>
+      <li><a href="/telao">Telão</a></li>
+    </ul>
+    <span class="selo" id="selo"><span class="ponto"></span><span id="seloTxt">Votação aberta</span></span>
+  </div>
+</nav>
+
+<main>
+  <section class="hero" id="votacao">
+    <div class="container">
+      <div class="eyebrow">Jogos · rápidos, entre lives</div>
+      <h1 class="display">Qual o próximo jogo?</h1>
+      <p class="lead">Jogos curtos para jogar entre uma série e outra. Resgate <span class="chip-voto">Jogo: nome do jogo</span> com ChicoPoints na Twitch. Cada jogo tem uma meta de pontos, pelo preço dele na Steam, e o voto aqui é mais barato.</p>
+      <div class="botoes"><a class="botao" href="/telao?lista=entre">Ver no telão ao vivo</a></div>
+
+      <div class="votacao-grid">
+        <ol class="ranking" id="ranking" aria-label="Ranking dos jogos"></ol>
+
+        <aside class="lateral">
+          <div class="cartao">
+            <div class="lider-capa capa" id="liderCapa"></div>
+            <div class="corpo">
+              <div class="eyebrow" id="liderRotulo">Na frente</div>
+              <div class="lider-nome display" id="liderNome">Nenhum voto ainda</div>
+              <div class="lider-info" id="liderInfo">O primeiro voto abre a corrida.</div>
+            </div>
+          </div>
+          <div class="cartao"><div class="corpo">
+            <div class="eyebrow" style="margin-bottom:8px">Últimos votos</div>
+            <ul class="feed" id="feed"></ul>
+          </div></div>
+          <div class="cartao"><div class="corpo total">
+            <span class="eyebrow">Total de votos</span>
+            <span class="display" id="total">0</span>
+          </div></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao" id="galeria">
+    <div class="container">
+      <div class="secao-topo">
+        <div>
+          <div class="eyebrow">Na votação</div>
+          <h2 class="display">Os jogos da rodada</h2>
+        </div>
+        <p>No rodapé de cada card: os votos e quanto falta para bater a meta.</p>
+      </div>
+      <div class="galeria" id="cards"></div>
+    </div>
+  </section>
+
+  <section class="secao" id="sinopses">
+    <div class="container">
+      <div class="secao-topo">
+        <div>
+          <div class="eyebrow">Antes de votar</div>
+          <h2 class="display">Sobre cada jogo</h2>
+        </div>
+        <p>Sinopse oficial da loja da Steam, sem spoiler além da premissa.</p>
+      </div>
+      <div class="sinopses" id="listaSinopses"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <span>Ric Gameplays · lives terça, quinta e sábado às 19h</span>
+    <span>Twitch · YouTube · Kick</span>
+  </div>
+</footer>
+
+<script type="module" src="/js/home.js"></script>
+</body>
+</html>

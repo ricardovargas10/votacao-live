@@ -1,4 +1,4 @@
-# Votação do próximo jogo · Ric Chico
+# Votação do próximo jogo · Ric Gameplays
 
 Site local com a votação ao vivo, a galeria dos jogos, as sinopses e a biblioteca completa, mais o overlay e o telão para o OBS.
 

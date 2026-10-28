@@ -21,6 +21,9 @@
   .pos{position:relative;width:18px;font-weight:900;font-size:var(--fp,14px);color:var(--muted)}
   .jogo.lider .pos{color:var(--win)}
   .nome{position:relative;flex:1;min-width:0;font-weight:700;font-size:var(--fn,15px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* % da meta: a barra enche até a meta do jogo (preço na Steam × 100 ChicoPoints) */
+  .meta-pct{position:relative;font-weight:700;font-size:var(--fm,12px);color:var(--muted);font-variant-numeric:tabular-nums}
+  .jogo.batida .meta-pct{color:var(--win)}
 
   /* número / nome de quem votou */
   .roleta{position:relative;display:inline-flex;justify-content:center;min-width:34px;max-width:170px;height:var(--hr,28px);align-items:center;padding:0 6px;border-radius:7px;font-weight:900;font-size:var(--fr,17px);overflow:hidden;white-space:nowrap;transition:background .2s,max-width .3s}
@@ -36,7 +39,7 @@
   <div id="lista"></div>
 </div>
 <script type="module">
-import { conectar, ordenar, TEXTOS } from "/js/ao-vivo.js";
+import { conectar, ordenar, TEXTOS, porcentagemMeta } from "/js/ao-vivo.js";
 import { Roleta } from "/js/roleta.js";
 
 // /overlay?lista=entre mostra a votação entre lives
@@ -61,6 +64,7 @@ function medir(n) {
   lista.style.setProperty("--fp", px(14, 10));
   lista.style.setProperty("--fr", px(17, 12));
   lista.style.setProperty("--frn", px(14, 11));
+  lista.style.setProperty("--fm", px(12, 10));
   lista.style.setProperty("--hr", Math.min(28, alt - gap - 2) + "px");
   return { alt, gap };
 }
@@ -69,7 +73,6 @@ function render(estado) {
   ultimo = estado;
   const ordem = ordenar(estado.opcoes);
   const { alt: ALTURA, gap } = medir(ordem.length);
-  const max = Math.max(1, ...ordem.map(j => j.votos));
   const ids = new Set(ordem.map(j => j.id));
   Object.keys(linhas).forEach(id => { if (!ids.has(id)) { linhas[id].el.remove(); delete linhas[id]; } });
   ordem.forEach((j, i) => {
@@ -77,15 +80,19 @@ function render(estado) {
     if (!l) {
       const el = document.createElement("div");
       el.className = "jogo";
-      el.innerHTML = '<div class="barra"></div><div class="pos"></div><div class="nome"></div><span></span>';
+      el.innerHTML = '<div class="barra"></div><div class="pos"></div><div class="nome"></div><span class="meta-pct"></span><span></span>';
       lista.appendChild(el);
       l = linhas[j.id] = { el, roleta: new Roleta(el.lastElementChild) };
     }
+    const pct = porcentagemMeta(j);
     l.el.style.top = i * ALTURA + "px";
     l.el.querySelector(".pos").textContent = i + 1;
     l.el.querySelector(".nome").textContent = j.nome;
-    l.el.querySelector(".barra").style.width = (j.votos / max * 100) + "%";
+    l.el.querySelector(".barra").style.width = pct + "%";
+    l.el.querySelector(".meta-pct").textContent = pct + "%";
+    l.el.title = `${j.votos} de ${j.metaVotos} votos da meta`;
     l.el.classList.toggle("lider", i === 0 && j.votos > 0);
+    l.el.classList.toggle("batida", pct >= 100);
     l.roleta.definir(j.votos);
   });
   lista.style.height = Math.max(0, ordem.length * ALTURA - gap) + "px";

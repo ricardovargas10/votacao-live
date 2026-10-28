@@ -1,4 +1,4 @@
-// Votação do próximo jogo · Ric Chico
+// Votação do próximo jogo · Ric Gameplays
 // Rode com:  npm start   (ou dois cliques em iniciar.bat)
 import http from "node:http";
 import fs from "node:fs";
@@ -30,12 +30,23 @@ votacao.vistos = votacao.vistos || [];
 votacao.votosEntre = votacao.votosEntre || {};
 votacao.ultimosEntre = votacao.ultimosEntre || [];
 
-// Duas votações: a principal ("É opção?" no Notion) e a de jogos rápidos entre lives ("Entre lives?")
+// Duas votações: Séries (jogos longos, "É opção?" no Notion) e Jogos (rápidos, entre lives, "Entre lives?")
+// prefixosAntigos: nomes que as recompensas já tiveram, para ainda reconhecer resgates feitos com eles
 const LISTAS = {
-  principal: { campo: "opcao", votos: "votos", ultimos: "ultimos", zerado: "zeradoEm", prefixo: PREFIXO, chave: id => id, custo: () => conta.twitch.custo, prompt: "Seu voto soma no placar do próximo jogo." },
-  entre: { campo: "entreLives", votos: "votosEntre", ultimos: "ultimosEntre", zerado: "zeradoEmEntre", prefixo: PREFIXO_ENTRE, chave: id => "entre:" + id, custo: () => conta.twitch.custoEntre || 100, prompt: "Seu voto soma no placar dos jogos entre lives." }
+  principal: { campo: "opcao", votos: "votos", ultimos: "ultimos", zerado: "zeradoEm", prefixo: PREFIXO, prefixosAntigos: ["Voto: "], chave: id => id, custo: () => conta.twitch.custo || 500, metaMinima: 10000, prompt: "Seu voto soma pontos para a próxima série." },
+  entre: { campo: "entreLives", votos: "votosEntre", ultimos: "ultimosEntre", zerado: "zeradoEmEntre", prefixo: PREFIXO_ENTRE, prefixosAntigos: ["Entre lives: "], chave: id => "entre:" + id, custo: () => conta.twitch.custoEntre || 100, metaMinima: 1000, prompt: "Seu voto soma pontos para o próximo jogo entre lives." }
 };
 const nomeLista = l => (LISTAS[l] ? l : "principal");
+
+// Meta de cada jogo: preço cheio na Steam × 100 ChicoPoints (sem preço na Steam, usa o "Preço" do Notion).
+// Jogo grátis ou barato fica com a meta mínima da lista. Em votos: meta ÷ custo do voto, arredondando para cima.
+const PONTOS_POR_REAL = 100;
+function metaDoJogo(j, lista) {
+  const L = LISTAS[lista];
+  const preco = steamInfo[j.id]?.precoCheio ?? j.preco ?? 0;
+  const pontos = Math.max(L.metaMinima, Math.round(preco * PONTOS_POR_REAL));
+  return { metaPontos: pontos, metaVotos: Math.ceil(pontos / L.custo()) };
+}
 // cada voto vai para o disco na hora: fechar a janela no X não perde nada
 const salvarVotos = () => gravarAgora("votos.json", votacao);
 
@@ -51,6 +62,8 @@ function jogoPublico(j, lista = "principal") {
     status: j.status, tipo: j.tipo, plataforma: j.plataforma, adquirido: j.adquirido,
     frequencia: j.frequencia, preco: j.preco, promo: j.promo,
     votos: votacao[LISTAS[lista].votos][j.id] || 0,
+    ...metaDoJogo(j, lista),
+    precoSteam: steamInfo[j.id]?.precoCheio ?? null,
     capa: j.capaNotion || s.capa || null,
     capaVertical: s.capaVertical || null,
     fundo: s.fundo || null,
@@ -133,10 +146,11 @@ function processarResgate({ id, quem, rewardId, titulo, t }) {
   if (chave) {
     if (chave.startsWith("entre:")) { lista = "entre"; jogoId = chave.slice(6); } else jogoId = chave;
   } else {
-    const [nome, L] = Object.entries(LISTAS).find(([, L]) => titulo.startsWith(L.prefixo)) || [];
+    let prefixo;
+    const [nome, L] = Object.entries(LISTAS).find(([, L]) => (prefixo = [L.prefixo, ...L.prefixosAntigos].find(p => titulo.startsWith(p)))) || [];
     if (L) {
       lista = nome;
-      const alvo = normalizar(titulo.slice(L.prefixo.length));
+      const alvo = normalizar(titulo.slice(prefixo.length));
       jogoId = jogos.find(j => tituloBate(j.nome, alvo))?.id;
     }
   }
@@ -220,7 +234,7 @@ async function completarSteam() {
 
 /* ---------- servidor ---------- */
 const TIPOS = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".json": "application/json", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8" };
-const PAGINAS = { "/": "index.html", "/telao": "telao.html", "/overlay": "overlay.html" };
+const PAGINAS = { "/": "index.html", "/series": "series.html", "/jogos": "jogos.html", "/biblioteca": "biblioteca.html", "/telao": "telao.html", "/overlay": "overlay.html" };
 
 function json(res, codigo, dados) {
   res.writeHead(codigo, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });

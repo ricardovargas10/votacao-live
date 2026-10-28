@@ -1,15 +1,17 @@
-import { conectar, ordenar, el, capa, iniciais, CORES_STATUS } from "./ao-vivo.js";
+// Páginas Séries, Jogos e Biblioteca: cada página desenha só as partes que ela tem.
+// Séries e Jogos usam o mesmo código; a página de Jogos tem <html data-lista="entre">.
+import { conectar, ordenar, el, capa, iniciais, porcentagemMeta } from "./ao-vivo.js";
 import { Roleta } from "./roleta.js";
 
 const ALTURA = 92;
+const $ = id => document.getElementById(id);
 let estado = null;
 const linhas = {}; // id -> { li, roleta }
 
 /* ---------- ranking ---------- */
 function renderRanking() {
-  const box = document.getElementById("ranking");
+  const box = $("ranking");
   const ordem = ordenar(estado.opcoes);
-  const max = Math.max(1, ...ordem.map(j => j.votos));
   const ids = new Set(ordem.map(j => j.id));
   Object.keys(linhas).forEach(id => { if (!ids.has(id)) { linhas[id].li.remove(); delete linhas[id]; } });
 
@@ -31,9 +33,13 @@ function renderRanking() {
     l.li.style.top = i * ALTURA + "px";
     l.li.querySelector(".pos").textContent = i + 1;
     l.li.querySelector(".nome").textContent = j.nome;
-    l.li.querySelector(".trilho i").style.width = (j.votos / max * 100) + "%";
-    l.li.querySelector(".pct").textContent = estado.total ? Math.round(j.votos / estado.total * 100) + "%" : "0%";
+    // barra e % = quanto da meta o jogo já juntou
+    const pct = porcentagemMeta(j);
+    l.li.querySelector(".trilho i").style.width = pct + "%";
+    l.li.querySelector(".pct").textContent = `${pct}% da meta`;
+    l.li.title = `${j.votos} de ${j.metaVotos} votos da meta`;
     l.li.classList.toggle("lider", i === 0 && j.votos > 0);
+    l.li.classList.toggle("batida", pct >= 100);
     l.roleta.definir(j.votos);
   });
   box.style.height = ordem.length * ALTURA + "px";
@@ -43,8 +49,8 @@ function renderRanking() {
 function renderLateral() {
   const ordem = ordenar(estado.opcoes);
   const [a, b] = ordem;
-  const rot = document.getElementById("liderRotulo"), nome = document.getElementById("liderNome"), info = document.getElementById("liderInfo");
-  const capaBox = document.getElementById("liderCapa");
+  const rot = $("liderRotulo"), nome = $("liderNome"), info = $("liderInfo");
+  const capaBox = $("liderCapa");
   if (!a || !a.votos) {
     rot.textContent = "Na frente"; nome.textContent = "Nenhum voto ainda"; info.textContent = "O primeiro voto abre a corrida.";
   } else if (b && a.votos === b.votos) {
@@ -57,7 +63,7 @@ function renderLateral() {
     nome.textContent = a.nome;
     const dif = a.votos - (b?.votos || 0);
     info.innerHTML = "";
-    info.append(Object.assign(el("b"), { textContent: a.votos }), document.createTextNode(` votos · ${dif} à frente${b ? " de " + b.nome : ""}`));
+    info.append(Object.assign(el("b"), { textContent: a.votos }), document.createTextNode(` votos · ${porcentagemMeta(a)}% da meta · ${dif} à frente${b ? " de " + b.nome : ""}`));
   }
   const lider = a && a.votos ? a : null;
   const chave = lider ? lider.id + "|" + (lider.capa || "") : "";
@@ -67,7 +73,7 @@ function renderLateral() {
     capaBox.replaceWith(nova);
   }
 
-  const feed = document.getElementById("feed");
+  const feed = $("feed");
   feed.replaceChildren();
   const ult = estado.ultimos.slice(0, 5);
   if (!ult.length) feed.append(el("li", "vazio", "Os votos aparecem aqui."));
@@ -78,21 +84,16 @@ function renderLateral() {
     li.append(el("span", "av", iniciais(u.quem)), txt);
     feed.append(li);
   });
-  document.getElementById("total").textContent = estado.total;
-
-  const selo = document.getElementById("selo");
-  selo.classList.toggle("aovivo", !!estado.aoVivo);
-  document.getElementById("seloTxt").textContent = estado.aoVivo ? "Contando ao vivo" : "Votação aberta";
+  $("total").textContent = estado.total;
 }
 
 /* ---------- galeria ---------- */
 function pilula(texto, cor) { return texto ? el("span", "pilula " + (cor || ""), texto) : null; }
 
 function renderGaleria() {
-  const box = document.getElementById("cards");
+  const box = $("cards");
   box.replaceChildren();
-  const ordem = ordenar(estado.opcoes);
-  ordem.forEach((j, i) => {
+  ordenar(estado.opcoes).forEach((j, i) => {
     const card = el("article", "card-jogo");
     const corpo = el("div", "corpo");
     const props = el("div", "props");
@@ -100,7 +101,7 @@ function renderGaleria() {
     (j.generos || []).slice(0, 2).forEach(g => props.append(pilula(g, "roxo")));
     const rodape = el("div", "rodape");
     const votos = el("span");
-    votos.append(el("b", null, j.votos), document.createTextNode(j.votos === 1 ? " voto" : " votos"));
+    votos.append(el("b", null, j.votos), document.createTextNode(` de ${j.metaVotos} votos · ${porcentagemMeta(j)}% da meta`));
     rodape.append(votos, el("span", "posicao", j.votos ? `${i + 1}º` : "–"));
     corpo.append(el("h3", null, j.nome), props, rodape);
     card.append(capa(j.capa, j.nome), corpo);
@@ -110,7 +111,7 @@ function renderGaleria() {
 
 /* ---------- sinopses ---------- */
 function renderSinopses() {
-  const box = document.getElementById("listaSinopses");
+  const box = $("listaSinopses");
   box.replaceChildren();
   estado.opcoes.forEach(j => {
     const item = el("article", "sinopse");
@@ -126,21 +127,32 @@ function renderSinopses() {
 }
 
 /* ---------- biblioteca ---------- */
+// "Já tem": Sim e Família Steam contam como sim. Jogo que o Ric já tem não mostra preço.
+const jaTem = j => j.adquirido === "Sim" || j.adquirido === "Família Steam";
+const precoDe = j => (jaTem(j) ? null : j.promo ?? j.preco ?? j.precoSteam ?? null);
+const anoDe = j => Number((j.lancamento || "").match(/\d{4}/)?.[0]) || null;
+const votacaoDe = j => [j.opcao && "Série", j.entreLives && "Jogo"].filter(Boolean).join(" e ") || null;
+
 const COLUNAS = [
-  { chave: "nome", titulo: "Nome" },
-  { chave: "status", titulo: "Status" },
-  { chave: "tipo", titulo: "Tipo" },
-  { chave: "plataforma", titulo: "Plataforma" },
-  { chave: "adquirido", titulo: "Adquirido?" },
-  { chave: "preco", titulo: "Preço", num: true },
-  { chave: "promo", titulo: "Promo", num: true },
-  { chave: "opcao", titulo: "Na votação" }
+  { chave: "nome", titulo: "Jogo", valor: j => j.nome },
+  { chave: "generos", titulo: "Gêneros", valor: j => j.generos?.[0] || null },
+  { chave: "ano", titulo: "Lançamento", valor: anoDe },
+  { chave: "jaTem", titulo: "Já tem", valor: j => (jaTem(j) ? "Sim" : "Não") },
+  { chave: "preco", titulo: "Preço", num: true, valor: precoDe },
+  { chave: "votacao", titulo: "Na votação", valor: votacaoDe }
 ];
-const tabela = { busca: "", status: "Todos", ordem: "nome", dir: 1 };
+const FILTROS = {
+  "Todos": () => true,
+  "Séries na votação": j => j.opcao,
+  "Jogos na votação": j => j.entreLives,
+  "Já tem": jaTem,
+  "Não tem": j => !jaTem(j)
+};
+const tabela = { busca: "", filtro: "Todos", ordem: "nome", dir: 1 };
 const real = v => v == null ? "" : v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
 function montarCabecalho() {
-  const tr = document.getElementById("cabecalho");
+  const tr = $("cabecalho");
   tr.replaceChildren();
   COLUNAS.forEach(c => {
     const th = el("th", c.num ? "num" : "", c.titulo);
@@ -150,58 +162,63 @@ function montarCabecalho() {
   });
 }
 function montarFiltros() {
-  const box = document.getElementById("filtros");
+  const box = $("filtros");
   box.replaceChildren();
-  ["Todos", "Na votação", ...Object.keys(CORES_STATUS)].forEach(s => {
+  Object.keys(FILTROS).forEach(s => {
     const b = el("button", "filtro", s);
-    b.setAttribute("aria-pressed", String(tabela.status === s));
-    b.onclick = () => { tabela.status = s; montarFiltros(); renderTabela(); };
+    b.setAttribute("aria-pressed", String(tabela.filtro === s));
+    b.onclick = () => { tabela.filtro = s; montarFiltros(); renderTabela(); };
     box.append(b);
   });
 }
 function renderTabela() {
-  const corpo = document.getElementById("linhas");
+  const corpo = $("linhas");
   const termo = tabela.busca.toLowerCase();
-  let lista = estado.biblioteca.filter(j =>
-    (!termo || j.nome.toLowerCase().includes(termo)) &&
-    (tabela.status === "Todos" || (tabela.status === "Na votação" ? j.opcao : j.status === tabela.status)));
-  const c = tabela.ordem;
+  const lista = estado.biblioteca.filter(j => (!termo || j.nome.toLowerCase().includes(termo)) && FILTROS[tabela.filtro](j));
+  const valor = COLUNAS.find(c => c.chave === tabela.ordem).valor;
   lista.sort((a, b) => {
-    const va = a[c], vb = b[c];
+    const va = valor(a), vb = valor(b);
     if (va == null && vb == null) return 0;
     if (va == null) return 1;
     if (vb == null) return -1;
-    return (typeof va === "string" ? va.localeCompare(vb) : Number(va) - Number(vb)) * tabela.dir;
+    return (typeof va === "string" ? va.localeCompare(vb) : va - vb) * tabela.dir;
   });
   corpo.replaceChildren();
   if (!lista.length) { const tr = el("tr"); const td = el("td", "vazio-tabela", "Nenhum jogo com esse filtro."); td.colSpan = COLUNAS.length; tr.append(td); corpo.append(tr); }
   lista.forEach(j => {
     const tr = el("tr");
     const nome = el("td"); const cel = el("div", "cel-nome"); cel.append(capa(j.capa, j.nome), el("span", null, j.nome)); nome.append(cel);
-    const st = el("td"); if (j.status) st.append(pilula(j.status, CORES_STATUS[j.status]));
-    const tipo = el("td"); if (j.tipo) tipo.append(pilula(j.tipo));
-    const plat = el("td", null, j.plataforma || "");
-    const adq = el("td"); if (j.adquirido) adq.append(pilula(j.adquirido, j.adquirido === "Sim" ? "verde" : j.adquirido === "Família Steam" ? "azul" : "cinza"));
-    const preco = el("td", "num", real(j.preco));
-    const promo = el("td", "num", real(j.promo));
-    const op = el("td"); op.append(el("span", "check" + (j.opcao ? " on" : "")));
-    tr.append(nome, st, tipo, plat, adq, preco, promo, op);
+    const gen = el("td"); const props = el("div", "props"); (j.generos || []).slice(0, 2).forEach(g => props.append(pilula(g, "roxo"))); gen.append(props);
+    const ano = el("td", "muted", anoDe(j) || "");
+    const tem = el("td"); tem.append(pilula(jaTem(j) ? "Sim" : "Não", jaTem(j) ? "verde" : "cinza"));
+    const preco = el("td", "num");
+    if (!jaTem(j)) {
+      const p = precoDe(j);
+      if (p != null) preco.append(el("span", null, real(p)));
+      // em promoção: mostra o preço de antes riscado
+      if (j.promo != null && j.preco != null && j.promo < j.preco) preco.append(el("s", "antes", real(j.preco)));
+    }
+    const vot = el("td"); if (votacaoDe(j)) vot.append(pilula(votacaoDe(j), "roxo"));
+    tr.append(nome, gen, ano, tem, preco, vot);
     corpo.append(tr);
   });
-  document.getElementById("contagem").textContent = `${lista.length} de ${estado.biblioteca.length} jogos`;
+  $("contagem").textContent = `${lista.length} de ${estado.biblioteca.length} jogos`;
 }
-document.getElementById("busca").addEventListener("input", e => { tabela.busca = e.target.value; renderTabela(); });
 
 /* ---------- ao vivo ---------- */
-let assinaturaGaleria = "";
+const temRanking = !!$("ranking"), temBiblioteca = !!$("linhas");
+let assinatura = "";
 function renderTudo() {
-  renderRanking();
-  renderLateral();
+  if (temRanking) { renderRanking(); renderLateral(); }
+  const selo = $("selo");
+  if (selo) { selo.classList.toggle("aovivo", !!estado.aoVivo); $("seloTxt").textContent = estado.aoVivo ? "Contando ao vivo" : "Votação aberta"; }
   // galeria, sinopses e tabela só redesenham quando algo muda nelas
-  const assinatura = JSON.stringify(estado.biblioteca.map(j => [j.id, j.nome, j.opcao, j.status, j.tipo, j.adquirido, j.capa, j.sinopse, j.votos, j.preco, j.promo, j.plataforma]));
-  if (assinatura !== assinaturaGaleria) {
-    assinaturaGaleria = assinatura;
-    renderGaleria(); renderSinopses(); renderTabela();
+  const nova = JSON.stringify([estado.opcoes.map(j => [j.id, j.capa, j.sinopse, j.votos, j.metaVotos]), estado.biblioteca.map(j => [j.id, j.nome, j.opcao, j.entreLives, j.adquirido, j.capa, j.preco, j.promo, j.precoSteam, j.generos, j.lancamento])]);
+  if (nova !== assinatura) {
+    assinatura = nova;
+    if ($("cards")) renderGaleria();
+    if ($("listaSinopses")) renderSinopses();
+    if (temBiblioteca) renderTabela();
   }
 }
 
@@ -215,6 +232,9 @@ conectar({
   }
 });
 
-montarCabecalho();
-montarFiltros();
-addEventListener("scroll", () => document.getElementById("nav").classList.toggle("rolou", scrollY > 8), { passive: true });
+if (temBiblioteca) {
+  montarCabecalho();
+  montarFiltros();
+  $("busca").addEventListener("input", e => { tabela.busca = e.target.value; renderTabela(); });
+}
+addEventListener("scroll", () => $("nav").classList.toggle("rolou", scrollY > 8), { passive: true });

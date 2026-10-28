@@ -2,7 +2,7 @@
   "name": "ric-votacao",
   "version": "1.0.0",
   "private": true,
-  "description": "Votação do próximo jogo do Ric Chico com ChicoPoints",
+  "description": "Votação do próximo jogo do Ric Gameplays com ChicoPoints",
   "type": "module",
   "main": "server.js",
   "scripts": {

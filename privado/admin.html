@@ -80,17 +80,17 @@
 
     <section class="bloco">
       <h2>Recompensas</h2>
-      <p>Cria "Voto: nome do jogo" para cada jogo marcado em É opção? e "Entre lives: nome do jogo" para cada um marcado em Entre lives? no Notion. Jogos desmarcados têm a recompensa desligada sozinha.</p>
-      <label for="custo">Custo de cada voto (ChicoPoints)</label>
+      <p>Cria "Série: nome" para cada jogo marcado em É opção? e "Jogo: nome" para cada um marcado em Entre lives? no Notion. Desmarcou, a recompensa desliga sozinha. A meta de cada um é o preço cheio na Steam × 100 ChicoPoints.</p>
+      <label for="custo">Custo de cada voto nas séries (ChicoPoints)</label>
       <input class="campo" id="custo" type="number" min="1">
-      <label for="custoEntre">Custo de cada voto entre lives (ChicoPoints)</label>
+      <label for="custoEntre">Custo de cada voto nos jogos entre lives (ChicoPoints)</label>
       <input class="campo" id="custoEntre" type="number" min="1">
       <div class="acoes"><button class="btn primario" id="criarRecompensas">Criar ou atualizar recompensas</button></div>
       <div class="relatorio" id="relatorio"></div>
     </section>
 
     <section class="bloco">
-      <h2>Votos</h2>
+      <h2>Votos das séries</h2>
       <p>Ajuste manual e testes. Os testes aparecem no site, no telão e no overlay.</p>
       <div id="votos"></div>
       <div class="acoes">
@@ -101,12 +101,12 @@
     </section>
 
     <section class="bloco">
-      <h2>Votos entre lives</h2>
-      <p>Jogos marcados em Entre lives? no Notion. Placar separado da votação principal.</p>
+      <h2>Votos dos jogos (entre lives)</h2>
+      <p>Jogos marcados em Entre lives? no Notion. Placar separado das séries.</p>
       <div id="votosEntre"></div>
       <div class="acoes">
-        <button class="btn" id="simularEntre">Simular 12 votos entre lives</button>
-        <button class="btn perigo" id="zerarEntre">Zerar entre lives</button>
+        <button class="btn" id="simularEntre">Simular 12 votos nos jogos</button>
+        <button class="btn perigo" id="zerarEntre">Zerar jogos</button>
       </div>
     </section>
 
@@ -213,8 +213,8 @@ function renderAdmin() {
   });
 
   const l = $("links"); l.replaceChildren();
-  [["Overlay", admin.links.overlay, "Largura 470 · Altura 400"], ["Telão", admin.links.telao, "Largura 1920 · Altura 1080"],
-   ["Overlay entre lives", admin.links.overlayEntre, "Largura 470 · Altura 400"], ["Telão entre lives", admin.links.telaoEntre, "Largura 1920 · Altura 1080"],
+  [["Overlay séries", admin.links.overlay, "Largura 470 · Altura 400"], ["Telão séries", admin.links.telao, "Largura 1920 · Altura 1080"],
+   ["Overlay jogos", admin.links.overlayEntre, "Largura 470 · Altura 400"], ["Telão jogos", admin.links.telaoEntre, "Largura 1920 · Altura 1080"],
    ["Site", admin.links.site, "Para abrir no navegador"]].forEach(([nome, url, dica]) => {
     const linha = el("div", "copiar");
     const b = el("button", "btn mini", "Copiar");

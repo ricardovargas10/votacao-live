@@ -191,3 +191,31 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
 }
+
+/* ===== Páginas novas: início, botões e biblioteca ===== */
+.nav-links a[aria-current="page"]{background:var(--surface);color:var(--text)}
+.botoes{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.botao{display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 20px;border-radius:999px;background:var(--text);color:#fff;font-size:15px;font-weight:600;text-decoration:none;transition:background .15s,transform .15s}
+.botao:hover{background:#000;transform:translateY(-1px)}
+.ponto-vivo{width:8px;height:8px;border-radius:50%;background:#e5484d;animation:pulsar 1.6s infinite}
+.hero-curto{padding-bottom:72px}
+.caixas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:56px}
+.caixa{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--raio);overflow:hidden;background:var(--bg);text-decoration:none;color:inherit;box-shadow:var(--sombra);transition:box-shadow .2s,transform .2s}
+.caixa:hover{box-shadow:0 10px 30px rgba(15,15,15,.08);transform:translateY(-2px)}
+.caixa-capa{aspect-ratio:460/215}
+.caixa .corpo{padding:24px;display:flex;flex-direction:column;gap:10px;flex:1}
+.caixa h2{font-size:56px}
+.caixa p{color:var(--text-2)}
+.caixa-info{font-size:14px;color:var(--muted);padding-top:12px;border-top:1px solid var(--line);margin-top:auto}
+.caixa-link{font-size:14px;font-weight:600}
+td.muted{color:var(--muted);font-variant-numeric:tabular-nums}
+td .props{flex-wrap:nowrap}
+s.antes{display:block;font-size:12px;color:var(--muted)}
+@media (max-width:760px){.caixas{grid-template-columns:1fr}}
+/* no celular o menu vira uma linha que rola para o lado, em vez de sumir */
+@media (max-width:640px){
+  .nav .container{height:auto;flex-wrap:wrap;padding:12px 0;gap:6px 12px}
+  .nav-links{display:flex;order:3;width:100%;overflow-x:auto;margin:0 -12px;padding:0 6px}
+  .nav-links a{white-space:nowrap}
+  .caixa h2{font-size:44px}
+}
