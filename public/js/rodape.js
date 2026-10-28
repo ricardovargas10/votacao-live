@@ -26,14 +26,12 @@ document.getElementById("rodape").innerHTML = `
         <img src="/img/ric.webp" alt="" width="48" height="48">
         <span class="display">Ric Gameplays</span>
       </a>
-      <div class="rodape-chamada"><span class="ponto-vivo"></span>Ao vivo todos os dias às <b>19h!</b></div>
+      <div class="rodape-chamada">Ao vivo todos os dias às 19h</div>
     </div>
     <div class="rodape-colunas">
       <div class="rodape-col rodape-col-live">
         <div class="eyebrow">Assista ao vivo</div>
-        <div class="live-cards">
-          ${LIVE.map(l => link(l.url, `<span class="live-cor" style="background:${l.cor}"></span><span class="live-txt"><b>${l.nome}</b><span>${l.usuario}</span></span><span class="seta">↗</span>`, "live-card")).join("")}
-        </div>
+        <ul>${LIVE.map(l => `<li>${link(l.url, `<i class="live-cor" style="background:${l.cor}"></i><b>${l.nome}</b><span>${l.usuario}</span>`, "rodape-link live-link")}</li>`).join("")}</ul>
       </div>
       ${GRUPOS.map(g => `<div class="rodape-col"><div class="eyebrow">${g.titulo}</div><ul>${g.links.map(l => `<li>${link(l.url, `<b>${l.nome}</b><span>${l.usuario}</span>`, "rodape-link")}</li>`).join("")}</ul></div>`).join("")}
     </div>
