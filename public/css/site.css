@@ -231,3 +231,6 @@ s.antes{display:block;font-size:12px;color:var(--muted)}
 .lista-frequentes .vazio{color:var(--muted);font-weight:400}
 @media (max-width:1000px){.caixas{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:760px){.caixas{grid-template-columns:1fr}}
+/* foto do Ric na frente do nome, no menu */
+.marca{display:inline-flex;align-items:center;gap:10px}
+.marca img{width:36px;height:36px;border-radius:50%;object-fit:cover;flex:none}

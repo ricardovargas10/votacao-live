@@ -238,7 +238,7 @@ async function completarSteam() {
 }
 
 /* ---------- servidor ---------- */
-const TIPOS = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".json": "application/json", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8" };
+const TIPOS = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".json": "application/json", ".woff2": "font/woff2", ".webp": "image/webp", ".txt": "text/plain; charset=utf-8" };
 const PAGINAS = { "/": "index.html", "/series": "series.html", "/jogos": "jogos.html", "/biblioteca": "biblioteca.html", "/telao": "telao.html", "/overlay": "overlay.html" };
 
 function json(res, codigo, dados) {
