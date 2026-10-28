@@ -13,6 +13,8 @@ const PORTA = Number(process.env.PORTA || 3000);
 const BASE = `http://localhost:${PORTA}`;
 const HOSTS_ACEITOS = new Set([`localhost:${PORTA}`, `127.0.0.1:${PORTA}`]);
 const PUBLICO = path.join(import.meta.dirname, "public");
+// o admin fica fora de public/: só este servidor (no PC do Ric) entrega a página; a Vercel nem tem o arquivo
+const ADMIN_HTML = path.join(import.meta.dirname, "privado", "admin.html");
 const DATABASE_PADRAO = "40218ed4dd2a801d9f3df813afb0342f"; // Ideias de jogos
 
 /* ---------- dados ---------- */
@@ -218,7 +220,7 @@ async function completarSteam() {
 
 /* ---------- servidor ---------- */
 const TIPOS = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".json": "application/json", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8" };
-const PAGINAS = { "/": "index.html", "/telao": "telao.html", "/overlay": "overlay.html", "/admin": "admin.html" };
+const PAGINAS = { "/": "index.html", "/telao": "telao.html", "/overlay": "overlay.html" };
 
 function json(res, codigo, dados) {
   res.writeHead(codigo, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
@@ -421,8 +423,8 @@ const servidor = http.createServer(async (req, res) => {
 
   // arquivos do site
   const arquivo = PAGINAS[url.pathname] || url.pathname.slice(1);
-  const caminho = path.resolve(PUBLICO, arquivo);
-  if (!caminho.startsWith(PUBLICO + path.sep)) { res.writeHead(403); return res.end(); }
+  const caminho = url.pathname === "/admin" ? ADMIN_HTML : path.resolve(PUBLICO, arquivo);
+  if (caminho !== ADMIN_HTML && !caminho.startsWith(PUBLICO + path.sep)) { res.writeHead(403); return res.end(); }
   fs.readFile(caminho, (err, dados) => {
     if (err) { res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }); return res.end("Página não encontrada"); }
     res.writeHead(200, { "Content-Type": TIPOS[path.extname(caminho)] || "application/octet-stream", "Cache-Control": "no-cache" });
