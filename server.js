@@ -3,6 +3,7 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import { spawn } from "node:child_process";
 import { ler, gravar, gravarAgora, gravarPendentes } from "./lib/store.js";
 import { buscarJogos } from "./lib/notion.js";
 import { acharAppId, detalhes, limparCache, normalizar } from "./lib/steam.js";
@@ -456,6 +457,7 @@ servidor.listen(PORTA, "127.0.0.1", async () => {
   console.log(`  Admin:    ${BASE}/admin`);
   console.log("");
   console.log("  Deixe esta janela aberta durante a live.");
+  abrirAdmin(); // só agora, com o servidor já respondendo (antes o navegador chegava cedo e dava "conexão recusada")
   await sincronizarNotion();
   completarSteam();
   twitch.iniciar();
@@ -471,8 +473,15 @@ function sair() {
 ["SIGINT", "SIGHUP", "SIGBREAK", "SIGTERM"].forEach(s => process.on(s, sair));
 process.on("uncaughtException", e => console.error("Erro:", e.message));
 process.on("unhandledRejection", e => console.error("Erro:", e?.message || e));
+// o atalho (iniciar.bat) liga ABRIR_ADMIN para o admin abrir no navegador quando tudo estiver pronto
+function abrirAdmin() {
+  if (process.env.ABRIR_ADMIN !== "1") return;
+  try { spawn("cmd", ["/c", "start", "", `${BASE}/admin`], { detached: true, stdio: "ignore" }).unref(); } catch {}
+}
 servidor.on("error", e => {
-  if (e.code === "EADDRINUSE") console.error(`\n  A porta ${PORTA} já está em uso: a votação já deve estar aberta em outra janela.\n`);
-  else console.error("Erro:", e.message);
-  process.exit(1);
+  if (e.code === "EADDRINUSE") {
+    console.error(`\n  A votação já está aberta em outra janela. Abrindo o admin dela.\n`);
+    abrirAdmin();
+  } else console.error("Erro:", e.message);
+  setTimeout(() => process.exit(1), 500); // meio segundo para o navegador abrir
 });
