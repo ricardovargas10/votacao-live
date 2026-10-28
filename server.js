@@ -35,17 +35,20 @@ votacao.ultimosEntre = votacao.ultimosEntre || [];
 // Duas votações: Séries (jogos longos, "É opção?" no Notion) e Jogos (rápidos, entre lives, "Jogo curto?")
 // prefixosAntigos: nomes que as recompensas já tiveram, para ainda reconhecer resgates feitos com eles
 const LISTAS = {
-  principal: { campo: "opcao", votos: "votos", ultimos: "ultimos", zerado: "zeradoEm", prefixo: PREFIXO, prefixosAntigos: ["Voto: "], chave: id => id, custo: () => conta.twitch.custo || 500, metaMinima: 10000, prompt: "Seu voto soma pontos para a próxima série." },
+  // séries: todas com a mesma meta em votos (são jogos longos, que ocupam o canal por semanas)
+  principal: { campo: "opcao", votos: "votos", ultimos: "ultimos", zerado: "zeradoEm", prefixo: PREFIXO, prefixosAntigos: ["Voto: "], chave: id => id, custo: () => conta.twitch.custo || 250, metaFixaVotos: () => conta.twitch.metaSeries || 40, prompt: "Seu voto soma pontos para a próxima série." },
   entre: { campo: "entreLives", votos: "votosEntre", ultimos: "ultimosEntre", zerado: "zeradoEmEntre", prefixo: PREFIXO_ENTRE, prefixosAntigos: ["Entre lives: "], chave: id => "entre:" + id, custo: () => conta.twitch.custoEntre || 100, metaMinima: 1000, prompt: "Seu voto soma pontos para o próximo jogo entre lives." }
 };
 const nomeLista = l => (LISTAS[l] ? l : "principal");
 
-// Meta de cada jogo: preço cheio na Steam × 100 ChicoPoints (sem preço na Steam, usa o "Preço" do Notion).
-// Jogo grátis, barato ou que o Ric já tem (Sim ou Família Steam) fica com a meta mínima da lista.
+// Meta de cada jogo. Séries: a mesma para todas (metaFixaVotos, ajustável no admin).
+// Jogos curtos: preço cheio na Steam × 100 ChicoPoints (sem preço na Steam, usa o "Preço" do Notion);
+// jogo grátis, barato ou que o Ric já tem (Sim ou Família Steam) fica com a meta mínima.
 // Em votos: meta ÷ custo do voto, arredondando para cima.
 const PONTOS_POR_REAL = 100;
 function metaDoJogo(j, lista) {
   const L = LISTAS[lista];
+  if (L.metaFixaVotos) { const v = L.metaFixaVotos(); return { metaPontos: v * L.custo(), metaVotos: v }; }
   const jaTem = j.adquirido === "Sim" || j.adquirido === "Família Steam";
   const preco = jaTem ? 0 : steamInfo[j.id]?.precoCheio ?? j.preco ?? 0;
   const pontos = Math.max(L.metaMinima, Math.round(preco * PONTOS_POR_REAL));
@@ -291,7 +294,7 @@ function checarAdmin(req, url) {
 
 function estadoAdmin() {
   return {
-    twitch: { ...twitch.status(), temClientId: !!conta.twitch.clientId, temSecret: !!conta.twitch.clientSecret, clientId: conta.twitch.clientId || "", custo: conta.twitch.custo || null, custoEntre: LISTAS.entre.custo(), redirect: `${BASE}/auth/callback` },
+    twitch: { ...twitch.status(), temClientId: !!conta.twitch.clientId, temSecret: !!conta.twitch.clientSecret, clientId: conta.twitch.clientId || "", custo: conta.twitch.custo || null, custoEntre: LISTAS.entre.custo(), metaSeries: LISTAS.principal.metaFixaVotos(), redirect: `${BASE}/auth/callback` },
     notion: { configurado: !!conta.notion.token, databaseId: conta.notion.databaseId || DATABASE_PADRAO, ...fonte },
     supabase: { url: conta.supabase.url || "", temSecreta: !!conta.supabase.secreta, temPublica: !!conta.supabase.publica, ...publicador.status() },
     links: { site: BASE + "/", telao: BASE + "/telao", overlay: BASE + "/overlay", telaoEntre: BASE + "/telao?lista=entre", overlayEntre: BASE + "/overlay?lista=entre" },
@@ -350,6 +353,8 @@ async function rotaAdmin(req, res, url) {
       if (corpo.custoEntre !== undefined && (!custoEntre || custoEntre < 1)) return json(res, 400, { erro: "Coloque o custo do voto entre lives" });
       conta.twitch.custo = custo;
       if (custoEntre) conta.twitch.custoEntre = custoEntre;
+      const metaSeries = parseInt(corpo.metaSeries, 10);
+      if (metaSeries >= 1) conta.twitch.metaSeries = metaSeries;
       salvarConta();
       await atualizandoRecompensas; // não roda junto com a atualização automática
       const relatorio = await twitch.sincronizarRecompensas(itensRecompensa());
