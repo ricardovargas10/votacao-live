@@ -18,25 +18,24 @@ const GRUPOS = [
 
 const link = (url, conteudo, cls) => `<a class="${cls}" href="${url}" target="_blank" rel="noopener">${conteudo}</a>`;
 
+// Estrutura: logo e chamada / lives, redes sociais e canais do YouTube em 3 colunas / direitos
 document.getElementById("rodape").innerHTML = `
   <div class="container">
     <div class="rodape-topo">
-      <div class="rodape-marca">
-        <img src="/img/ric.webp" alt="" width="44" height="44">
-        <div>
-          <div class="display">Ric Gameplays</div>
-          <div class="rodape-horario"><span class="ponto-vivo"></span>Ao vivo todos os dias às 19h!</div>
-        </div>
-      </div>
-      <div class="rodape-live">
+      <a class="rodape-marca" href="/">
+        <img src="/img/ric.webp" alt="" width="48" height="48">
+        <span class="display">Ric Gameplays</span>
+      </a>
+      <div class="rodape-chamada"><span class="ponto-vivo"></span>Ao vivo todos os dias às <b>19h!</b></div>
+    </div>
+    <div class="rodape-colunas">
+      <div class="rodape-col rodape-col-live">
         <div class="eyebrow">Assista ao vivo</div>
         <div class="live-cards">
           ${LIVE.map(l => link(l.url, `<span class="live-cor" style="background:${l.cor}"></span><span class="live-txt"><b>${l.nome}</b><span>${l.usuario}</span></span><span class="seta">↗</span>`, "live-card")).join("")}
         </div>
       </div>
-    </div>
-    <div class="rodape-grupos">
-      ${GRUPOS.map(g => `<div><div class="eyebrow">${g.titulo}</div><ul>${g.links.map(l => `<li>${link(l.url, `<b>${l.nome}</b><span>${l.usuario}</span>`, "rodape-link")}</li>`).join("")}</ul></div>`).join("")}
+      ${GRUPOS.map(g => `<div class="rodape-col"><div class="eyebrow">${g.titulo}</div><ul>${g.links.map(l => `<li>${link(l.url, `<b>${l.nome}</b><span>${l.usuario}</span>`, "rodape-link")}</li>`).join("")}</ul></div>`).join("")}
     </div>
     <div class="rodape-fim">© ${new Date().getFullYear()} Ric Gameplays · votação com ChicoPoints</div>
   </div>`;
