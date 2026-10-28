@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Telão da votação</title>
-<link rel="icon" type="image/webp" href="/img/ric.webp">
+<link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<link rel="alternate icon" type="image/webp" href="/img/ric.webp">
 <link rel="apple-touch-icon" href="/img/ric.webp">
 <link rel="stylesheet" href="/css/site.css">
 <style>
@@ -41,6 +42,14 @@
   .feed-topo{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
   .total-mini{font-size:16px;color:var(--muted)}
   .total-mini b{font-size:40px;color:var(--text);margin-right:4px}
+  /* telão dos Frequentes: vitrine dos jogos de sempre, sem votação */
+  #vitrine[hidden]{display:none}
+  #vitrine{grid-column:1 / -1;display:grid;grid-template-columns:repeat(var(--colunas,2),minmax(0,1fr));gap:32px;align-content:center;min-height:0}
+  #vitrine .card-jogo{box-shadow:var(--sombra)}
+  #vitrine .card-jogo .capa{aspect-ratio:16/9}
+  #vitrine .card-jogo h3{font-size:56px}
+  #vitrine .pilula{font-size:18px;height:32px;padding:0 12px}
+  #vitrine .card-jogo .corpo{padding:24px 28px;gap:14px}
 </style>
 </head>
 <body>
@@ -54,6 +63,8 @@
   </header>
 
   <ol class="ranking" id="ranking"></ol>
+
+  <div id="vitrine" hidden></div>
 
   <aside>
     <div class="cartao">
@@ -72,7 +83,7 @@
 </div>
 
 <script type="module">
-import { conectar, ordenar, el, capa, iniciais, TEXTOS, porcentagemMeta } from "/js/ao-vivo.js";
+import { conectar, ordenar, el, capa, iniciais, TEXTOS, porcentagemMeta, LISTA } from "/js/ao-vivo.js";
 import { Roleta } from "/js/roleta.js";
 
 // /telao?lista=entre mostra a votação entre lives
@@ -152,7 +163,30 @@ function render() {
   document.getElementById("seloTxt").textContent = estado.aoVivo ? "Contando ao vivo" : "Votação aberta";
 }
 
-conectar({
+// /telao?lista=frequentes: só a vitrine dos jogos de sempre (não tem votação)
+if (LISTA === "frequentes") {
+  document.getElementById("ranking").style.display = "none";
+  document.querySelector("aside").style.display = "none";
+  document.querySelector(".como").textContent = "Sem votação: aparecem nas lives de qualquer jeito";
+  const vitrine = document.getElementById("vitrine");
+  vitrine.hidden = false;
+  let assinatura = "";
+  conectar({ aoEstado: s => {
+    document.getElementById("selo").classList.toggle("aovivo", !!s.aoVivo);
+    document.getElementById("seloTxt").textContent = s.aoVivo ? "Ao vivo" : "Sempre no canal";
+    const nova = JSON.stringify(s.opcoes.map(j => [j.id, j.capa, j.generos]));
+    if (nova === assinatura) return;
+    assinatura = nova;
+    vitrine.style.setProperty("--colunas", Math.min(3, Math.max(1, s.opcoes.length)));
+    vitrine.replaceChildren(...s.opcoes.map(j => {
+      const card = el("article", "card-jogo"), corpo = el("div", "corpo"), props = el("div", "props");
+      (j.generos || []).slice(0, 2).forEach(g => props.append(el("span", "pilula roxo", g)));
+      corpo.append(el("h3", null, j.nome), props);
+      card.append(capa(j.capa, j.nome), corpo);
+      return card;
+    }));
+  } });
+} else conectar({
   aoEstado: s => { estado = s; render(); },
   aoVoto: v => {
     const l = linhas[v.jogoId]; if (!l) return;

@@ -132,9 +132,8 @@ function renderSinopses() {
 }
 
 /* ---------- biblioteca ---------- */
-// "Já tem": Sim e Família Steam contam como sim. Jogo que o Ric já tem não mostra preço.
+// "Já tem": Sim e Família Steam contam como sim. Sem coluna de preço, para ninguém achar que é valor cobrado.
 const jaTem = j => j.adquirido === "Sim" || j.adquirido === "Família Steam";
-const precoDe = j => (jaTem(j) ? null : j.promo ?? j.preco ?? j.precoSteam ?? null);
 const anoDe = j => Number((j.lancamento || "").match(/\d{4}/)?.[0]) || null;
 const votacaoDe = j => [j.opcao && "Série", j.entreLives && "Jogo curto", j.frequente && "Frequente"].filter(Boolean).join(" e ") || null;
 
@@ -143,7 +142,6 @@ const COLUNAS = [
   { chave: "generos", titulo: "Gêneros", valor: j => j.generos?.[0] || null },
   { chave: "ano", titulo: "Lançamento", valor: anoDe },
   { chave: "jaTem", titulo: "Já tem", valor: j => (jaTem(j) ? "Sim" : "Não") },
-  { chave: "preco", titulo: "Preço", num: true, valor: precoDe },
   { chave: "votacao", titulo: "Na votação", valor: votacaoDe }
 ];
 const FILTROS = {
@@ -155,7 +153,6 @@ const FILTROS = {
   "Não tem": j => !jaTem(j)
 };
 const tabela = { busca: "", filtro: "Todos", ordem: "nome", dir: 1 };
-const real = v => v == null ? "" : v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
 function montarCabecalho() {
   const tr = $("cabecalho");
@@ -197,15 +194,8 @@ function renderTabela() {
     const gen = el("td"); const props = el("div", "props"); (j.generos || []).slice(0, 2).forEach(g => props.append(pilula(g, "roxo"))); gen.append(props);
     const ano = el("td", "muted", anoDe(j) || "");
     const tem = el("td"); tem.append(pilula(jaTem(j) ? "Sim" : "Não", jaTem(j) ? "verde" : "cinza"));
-    const preco = el("td", "num");
-    if (!jaTem(j)) {
-      const p = precoDe(j);
-      if (p != null) preco.append(el("span", null, real(p)));
-      // em promoção: mostra o preço de antes riscado
-      if (j.promo != null && j.preco != null && j.promo < j.preco) preco.append(el("s", "antes", real(j.preco)));
-    }
     const vot = el("td"); if (votacaoDe(j)) vot.append(pilula(votacaoDe(j), "roxo"));
-    tr.append(nome, gen, ano, tem, preco, vot);
+    tr.append(nome, gen, ano, tem, vot);
     corpo.append(tr);
   });
   $("contagem").textContent = `${lista.length} de ${estado.biblioteca.length} jogos`;

@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ric Gameplays · Votação</title>
-<link rel="icon" type="image/webp" href="/img/ric.webp">
+<link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<link rel="alternate icon" type="image/webp" href="/img/ric.webp">
 <link rel="apple-touch-icon" href="/img/ric.webp">
 <link rel="stylesheet" href="/css/site.css">
 </head>
@@ -18,7 +19,11 @@
       <li><a href="/jogos">Jogos curtos</a></li>
       <li><a href="/frequentes">Frequentes</a></li>
       <li><a href="/biblioteca">Biblioteca</a></li>
-      <li><a href="/telao">Telão</a></li>
+      <li class="menu-telao"><details><summary>Telão</summary><div class="menu-telao-opcoes">
+        <a href="/telao"><b>Séries</b><span>votação dos jogos longos</span></a>
+        <a href="/telao?lista=entre"><b>Jogos curtos</b><span>votação entre lives</span></a>
+        <a href="/telao?lista=frequentes"><b>Frequentes</b><span>os jogos de sempre</span></a>
+      </div></details></li>
     </ul>
     <span class="selo" id="selo"><span class="ponto"></span><span id="seloTxt">Votação aberta</span></span>
   </div>
@@ -30,7 +35,7 @@
       <div class="eyebrow">Votação com ChicoPoints</div>
       <h1 class="display">O que o Ric vai jogar?</h1>
       <p class="lead">Você escolhe com os ChicoPoints da Twitch. Cada jogo tem uma meta de pontos pelo preço dele na Steam: quando a meta bate, o jogo entra na fila.</p>
-      <div class="botoes"><a class="botao" href="/telao"><span class="ponto-vivo"></span>Telão das séries</a><a class="botao secundario" href="/telao?lista=entre"><span class="ponto-vivo"></span>Telão dos jogos curtos</a></div>
+      <div class="botoes"><a class="botao" href="/telao"><span class="ponto-vivo"></span>Telão das séries</a><a class="botao secundario" href="/telao?lista=entre"><span class="ponto-vivo"></span>Telão dos jogos curtos</a><a class="botao secundario" href="/telao?lista=frequentes">Telão dos frequentes</a></div>
 
       <div class="caixas">
         <a class="caixa" href="/series">
@@ -68,13 +73,9 @@
   </section>
 </main>
 
-<footer>
-  <div class="container">
-    <span>Ric Gameplays · lives terça, quinta e sábado às 19h</span>
-    <span>Twitch · YouTube · Kick</span>
-  </div>
-</footer>
+<footer class="rodape" id="rodape"></footer>
 
 <script type="module" src="/js/inicio.js"></script>
+<script type="module" src="/js/rodape.js"></script>
 </body>
 </html>

@@ -202,7 +202,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
 .caixas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:56px}
 .caixa{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--raio);overflow:hidden;background:var(--bg);text-decoration:none;color:inherit;box-shadow:var(--sombra);transition:box-shadow .2s,transform .2s}
 .caixa:hover{box-shadow:0 10px 30px rgba(15,15,15,.08);transform:translateY(-2px)}
-.caixa-capa{aspect-ratio:460/215}
+.caixa-capa{aspect-ratio:16/9}
 .caixa .corpo{padding:24px;display:flex;flex-direction:column;gap:10px;flex:1}
 .caixa h2{font-size:56px}
 .caixa p{color:var(--text-2)}
@@ -235,3 +235,41 @@ s.antes{display:block;font-size:12px;color:var(--muted)}
 /* foto do Ric na frente do nome, no menu */
 .marca{display:inline-flex;align-items:center;gap:10px}
 .marca img{width:36px;height:36px;border-radius:50%;object-fit:cover;flex:none}
+
+/* ===== Rodapé: lives em destaque, depois redes e canais ===== */
+footer.rodape{padding:72px 0 40px;background:var(--surface);border-top:1px solid var(--line);color:var(--text);font-size:14px}
+footer.rodape .container{display:block}
+.rodape-topo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:40px;align-items:end;padding-bottom:40px;border-bottom:1px solid var(--line-2)}
+.rodape-marca{display:flex;align-items:center;gap:14px}
+.rodape-marca img{width:44px;height:44px;border-radius:50%;flex:none}
+.rodape-marca .display{font-size:32px}
+.rodape-horario{display:flex;align-items:center;gap:8px;margin-top:4px;color:var(--text-2);font-weight:500}
+.rodape-live .eyebrow{margin-bottom:12px}
+.live-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.live-card{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line-2);border-radius:var(--raio);background:var(--bg);text-decoration:none;box-shadow:var(--sombra);transition:transform .15s,box-shadow .15s,border-color .15s}
+.live-card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(15,15,15,.08);border-color:#cfcecb}
+.live-cor{flex:none;width:10px;height:36px;border-radius:99px}
+.live-txt{display:flex;flex-direction:column;min-width:0;line-height:1.3}
+.live-txt b{font-size:16px;font-weight:700}
+.live-txt span,.rodape-link span{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live-card .seta{margin-left:auto;color:var(--muted)}
+.rodape-grupos{display:grid;grid-template-columns:repeat(2,minmax(0,220px));gap:40px;padding:32px 0}
+.rodape-grupos ul{list-style:none;display:flex;flex-direction:column;gap:2px;margin-top:10px}
+.rodape-link{display:flex;align-items:baseline;gap:8px;padding:5px 0;text-decoration:none}
+.rodape-link b{font-weight:600}
+.rodape-link:hover b{text-decoration:underline;text-underline-offset:3px}
+.rodape-fim{color:var(--muted);font-size:12px;padding-top:20px;border-top:1px solid var(--line-2)}
+@media (max-width:900px){.rodape-topo{grid-template-columns:1fr}}
+@media (max-width:640px){.live-cards{grid-template-columns:1fr}.rodape-grupos{grid-template-columns:1fr 1fr;gap:24px}}
+/* menu Telão: escolhe entre séries, jogos curtos e frequentes */
+.menu-telao{position:relative}
+.menu-telao summary{list-style:none;display:block;padding:8px 12px;border-radius:var(--raio-sm);font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;transition:background .15s,color .15s}
+.menu-telao summary::-webkit-details-marker{display:none}
+.menu-telao summary::after{content:"▾";margin-left:6px;font-size:11px}
+.menu-telao summary:hover,.menu-telao details[open] summary{background:var(--surface);color:var(--text)}
+.menu-telao-opcoes{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:30;min-width:240px;padding:6px;border:1px solid var(--line);border-radius:var(--raio);background:var(--bg);box-shadow:0 12px 32px rgba(15,15,15,.12);display:flex;flex-direction:column}
+.menu-telao-opcoes a{display:flex;flex-direction:column;gap:1px;padding:10px 12px;border-radius:var(--raio-sm);text-decoration:none}
+.menu-telao-opcoes a:hover{background:var(--surface)}
+.menu-telao-opcoes b{font-size:14px;font-weight:600;color:var(--text)}
+.menu-telao-opcoes span{font-size:12px;color:var(--muted)}
+@media (max-width:640px){.menu-telao-opcoes{position:fixed;top:auto;left:16px;right:16px;transform:none;margin-top:6px}}

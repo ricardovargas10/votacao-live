@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Biblioteca · Ric Gameplays</title>
-<link rel="icon" type="image/webp" href="/img/ric.webp">
+<link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<link rel="alternate icon" type="image/webp" href="/img/ric.webp">
 <link rel="apple-touch-icon" href="/img/ric.webp">
 <link rel="stylesheet" href="/css/site.css">
 </head>
@@ -18,7 +19,11 @@
       <li><a href="/jogos">Jogos curtos</a></li>
       <li><a href="/frequentes">Frequentes</a></li>
       <li><a href="/biblioteca" aria-current="page">Biblioteca</a></li>
-      <li><a href="/telao">Telão</a></li>
+      <li class="menu-telao"><details><summary>Telão</summary><div class="menu-telao-opcoes">
+        <a href="/telao"><b>Séries</b><span>votação dos jogos longos</span></a>
+        <a href="/telao?lista=entre"><b>Jogos curtos</b><span>votação entre lives</span></a>
+        <a href="/telao?lista=frequentes"><b>Frequentes</b><span>os jogos de sempre</span></a>
+      </div></details></li>
     </ul>
     <span class="selo" id="selo"><span class="ponto"></span><span id="seloTxt">Votação aberta</span></span>
   </div>
@@ -45,13 +50,9 @@
   </section>
 </main>
 
-<footer>
-  <div class="container">
-    <span>Ric Gameplays · lives terça, quinta e sábado às 19h</span>
-    <span>Twitch · YouTube · Kick</span>
-  </div>
-</footer>
+<footer class="rodape" id="rodape"></footer>
 
 <script type="module" src="/js/home.js"></script>
+<script type="module" src="/js/rodape.js"></script>
 </body>
 </html>
