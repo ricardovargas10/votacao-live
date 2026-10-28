@@ -35,24 +35,17 @@ votacao.ultimosEntre = votacao.ultimosEntre || [];
 // Duas votações: Séries (jogos longos, "É opção?" no Notion) e Jogos (rápidos, entre lives, "Jogo curto?")
 // prefixosAntigos: nomes que as recompensas já tiveram, para ainda reconhecer resgates feitos com eles
 const LISTAS = {
-  // séries: todas com a mesma meta em votos (são jogos longos, que ocupam o canal por semanas)
+  // cada lista tem uma meta só em votos, igual para todos os jogos dela (ajustável no admin)
   principal: { campo: "opcao", votos: "votos", ultimos: "ultimos", zerado: "zeradoEm", prefixo: PREFIXO, prefixosAntigos: ["Voto: "], chave: id => id, custo: () => conta.twitch.custo || 250, metaFixaVotos: () => conta.twitch.metaSeries || 40, prompt: "Seu voto soma pontos para a próxima série." },
-  entre: { campo: "entreLives", votos: "votosEntre", ultimos: "ultimosEntre", zerado: "zeradoEmEntre", prefixo: PREFIXO_ENTRE, prefixosAntigos: ["Entre lives: "], chave: id => "entre:" + id, custo: () => conta.twitch.custoEntre || 100, metaMinima: 1000, prompt: "Seu voto soma pontos para o próximo jogo entre lives." }
+  entre: { campo: "entreLives", votos: "votosEntre", ultimos: "ultimosEntre", zerado: "zeradoEmEntre", prefixo: PREFIXO_ENTRE, prefixosAntigos: ["Entre lives: "], chave: id => "entre:" + id, custo: () => conta.twitch.custoEntre || 100, metaFixaVotos: () => conta.twitch.metaCurtos || 20, prompt: "Seu voto soma pontos para o próximo jogo entre lives." }
 };
 const nomeLista = l => (LISTAS[l] ? l : "principal");
 
-// Meta de cada jogo. Séries: a mesma para todas (metaFixaVotos, ajustável no admin).
-// Jogos curtos: preço cheio na Steam × 100 ChicoPoints (sem preço na Steam, usa o "Preço" do Notion);
-// jogo grátis, barato ou que o Ric já tem (Sim ou Família Steam) fica com a meta mínima.
-// Em votos: meta ÷ custo do voto, arredondando para cima.
-const PONTOS_POR_REAL = 100;
+// Meta de cada jogo: a mesma quantidade de votos para todos os jogos da lista
 function metaDoJogo(j, lista) {
   const L = LISTAS[lista];
-  if (L.metaFixaVotos) { const v = L.metaFixaVotos(); return { metaPontos: v * L.custo(), metaVotos: v }; }
-  const jaTem = j.adquirido === "Sim" || j.adquirido === "Família Steam";
-  const preco = jaTem ? 0 : steamInfo[j.id]?.precoCheio ?? j.preco ?? 0;
-  const pontos = Math.max(L.metaMinima, Math.round(preco * PONTOS_POR_REAL));
-  return { metaPontos: pontos, metaVotos: Math.ceil(pontos / L.custo()) };
+  const v = L.metaFixaVotos();
+  return { metaPontos: v * L.custo(), metaVotos: v };
 }
 // cada voto vai para o disco na hora: fechar a janela no X não perde nada
 const salvarVotos = () => gravarAgora("votos.json", votacao);
@@ -294,7 +287,7 @@ function checarAdmin(req, url) {
 
 function estadoAdmin() {
   return {
-    twitch: { ...twitch.status(), temClientId: !!conta.twitch.clientId, temSecret: !!conta.twitch.clientSecret, clientId: conta.twitch.clientId || "", custo: conta.twitch.custo || null, custoEntre: LISTAS.entre.custo(), metaSeries: LISTAS.principal.metaFixaVotos(), redirect: `${BASE}/auth/callback` },
+    twitch: { ...twitch.status(), temClientId: !!conta.twitch.clientId, temSecret: !!conta.twitch.clientSecret, clientId: conta.twitch.clientId || "", custo: conta.twitch.custo || null, custoEntre: LISTAS.entre.custo(), metaSeries: LISTAS.principal.metaFixaVotos(), metaCurtos: LISTAS.entre.metaFixaVotos(), redirect: `${BASE}/auth/callback` },
     notion: { configurado: !!conta.notion.token, databaseId: conta.notion.databaseId || DATABASE_PADRAO, ...fonte },
     supabase: { url: conta.supabase.url || "", temSecreta: !!conta.supabase.secreta, temPublica: !!conta.supabase.publica, ...publicador.status() },
     links: { site: BASE + "/", telao: BASE + "/telao", overlay: BASE + "/overlay", telaoEntre: BASE + "/telao?lista=entre", overlayEntre: BASE + "/overlay?lista=entre" },
@@ -355,6 +348,8 @@ async function rotaAdmin(req, res, url) {
       if (custoEntre) conta.twitch.custoEntre = custoEntre;
       const metaSeries = parseInt(corpo.metaSeries, 10);
       if (metaSeries >= 1) conta.twitch.metaSeries = metaSeries;
+      const metaCurtos = parseInt(corpo.metaCurtos, 10);
+      if (metaCurtos >= 1) conta.twitch.metaCurtos = metaCurtos;
       salvarConta();
       await atualizandoRecompensas; // não roda junto com a atualização automática
       const relatorio = await twitch.sincronizarRecompensas(itensRecompensa());

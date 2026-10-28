@@ -83,12 +83,14 @@
 
     <section class="bloco">
       <h2>Recompensas</h2>
-      <p>Cria "Série: nome" para cada jogo marcado em É opção? e "Jogo: nome" para cada um marcado em Jogo curto? no Notion. Desmarcou, a recompensa desliga sozinha. As séries têm a mesma meta; nos jogos curtos, a meta é o preço cheio na Steam × 100 ChicoPoints.</p>
+      <p>Cria "Série: nome" para cada jogo marcado em É opção? e "Jogo: nome" para cada um marcado em Jogo curto? no Notion. Desmarcou, a recompensa desliga sozinha. Cada lista tem uma meta de votos igual para todos os jogos dela.</p>
       <label for="custo">Custo de cada voto nas séries (ChicoPoints)</label>
       <input class="campo" id="custo" type="number" min="1">
       <label for="metaSeries">Meta de cada série (votos)</label>
       <input class="campo" id="metaSeries" type="number" min="1">
-      <div class="dica">Toda série tem a mesma meta. Jogos curtos continuam com a meta pelo preço na Steam.</div>
+      <label for="metaCurtos">Meta de cada jogo curto (votos)</label>
+      <input class="campo" id="metaCurtos" type="number" min="1">
+      <div class="dica">Todos os jogos de uma lista têm a mesma meta.</div>
       <label for="custoEntre">Custo de cada voto nos jogos curtos (ChicoPoints)</label>
       <input class="campo" id="custoEntre" type="number" min="1">
       <div class="acoes"><button class="btn primario" id="criarRecompensas">Criar ou atualizar recompensas</button></div>
@@ -192,6 +194,7 @@ function renderAdmin() {
   if (tw.custo && !$("custo").value) $("custo").value = tw.custo;
   if (tw.custoEntre && !$("custoEntre").value) $("custoEntre").value = tw.custoEntre;
   if (tw.metaSeries && !$("metaSeries").value) $("metaSeries").value = tw.metaSeries;
+  if (tw.metaCurtos && !$("metaCurtos").value) $("metaCurtos").value = tw.metaCurtos;
 
   const sb = admin.supabase;
   if (!sb.ativo) estadoBox("sbEstado", "sbTxt", "", "Não configurado. O site só funciona no seu PC.");
@@ -260,7 +263,7 @@ $("desconectar").onclick = async () => { admin = await post("twitch/desconectar"
 $("criarRecompensas").onclick = async e => {
   e.target.disabled = true;
   try {
-    const d = await post("recompensas", { custo: $("custo").value, custoEntre: $("custoEntre").value, metaSeries: $("metaSeries").value });
+    const d = await post("recompensas", { custo: $("custo").value, custoEntre: $("custoEntre").value, metaSeries: $("metaSeries").value, metaCurtos: $("metaCurtos").value });
     admin = d; renderAdmin();
     const r = $("relatorio"); r.replaceChildren();
     d.relatorio.forEach(x => r.append(el("div", x.ok ? "ok" : "falha", `${x.ok ? "✔" : "✖"} ${x.jogo}: ${x.acao}`)));
