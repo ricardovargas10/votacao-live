@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Overlay da votação</title>
+<link rel="stylesheet" href="/css/fontes.css">
+<style>
+  /* Só mostra os votos. Nenhuma configuração nesta página. */
+  :root{--bg:rgba(14,12,22,.86);--line:rgba(255,255,255,.08);--text:#f4f2fa;--muted:#a9a3bd;--accent:#9146ff;--accent2:#c9a6ff;--win:#ffd166}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:transparent;color:var(--text);font-family:Archivo,system-ui,sans-serif;overflow:hidden}
+  #placar{width:440px;margin:10px;padding:18px 18px 14px;border-radius:18px;background:var(--bg);border:1px solid var(--line);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+  .topo{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+  .titulo{font-weight:900;font-size:20px}
+  .sub{font-size:12px;color:var(--muted);font-weight:500}
+  #lista{position:relative}
+  .jogo{position:absolute;left:0;right:0;display:flex;align-items:center;gap:10px;height:var(--h,40px);padding:0 6px 0 12px;border-radius:10px;background:rgba(255,255,255,.04);overflow:hidden;transition:top .5s ease}
+  .barra{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,rgba(145,70,255,.55),rgba(145,70,255,.18));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .jogo.lider .barra{background:linear-gradient(90deg,rgba(255,209,102,.5),rgba(255,209,102,.14))}
+  .pos{position:relative;width:18px;font-weight:900;font-size:var(--fp,14px);color:var(--muted)}
+  .jogo.lider .pos{color:var(--win)}
+  .nome{position:relative;flex:1;min-width:0;font-weight:700;font-size:var(--fn,15px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* número / nome de quem votou */
+  .roleta{position:relative;display:inline-flex;justify-content:center;min-width:34px;max-width:170px;height:var(--hr,28px);align-items:center;padding:0 6px;border-radius:7px;font-weight:900;font-size:var(--fr,17px);overflow:hidden;white-space:nowrap;transition:background .2s,max-width .3s}
+  .roleta .roleta-txt{display:inline-block;overflow:hidden;text-overflow:ellipsis}
+  .roleta .roleta-txt.troca{animation:trocar .2s ease-out}
+  .roleta.mostrando-nome{background:var(--accent);color:#fff;font-size:var(--frn,14px);padding:0 10px}
+  @keyframes trocar{from{transform:translateY(70%);opacity:0}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<div id="placar">
+  <div class="topo"><div class="titulo" id="titulo">Próximo jogo</div><div class="sub">vote com ChicoPoints</div></div>
+  <div id="lista"></div>
+</div>
+<script type="module">
+import { conectar, ordenar, TEXTOS } from "/js/ao-vivo.js";
+import { Roleta } from "/js/roleta.js";
+
+// /overlay?lista=entre mostra a votação entre lives
+document.getElementById("titulo").textContent = TEXTOS.titulo;
+
+const ALTURA_MAX = 47; // linha de 40px + 7px de espaço (até 6 jogos cabem assim nos 400px)
+const linhas = {};
+const lista = document.getElementById("lista");
+let ultimo = null;
+
+// Com muitos jogos, as linhas encolhem para tudo caber na altura da fonte Navegador
+function medir(n) {
+  const placar = document.getElementById("placar");
+  const sobra = parseFloat(getComputedStyle(placar).paddingBottom) + parseFloat(getComputedStyle(placar).marginBottom);
+  const livre = innerHeight - lista.getBoundingClientRect().top - sobra;
+  const alt = Math.max(20, Math.min(ALTURA_MAX, Math.floor(livre / Math.max(n, 1))));
+  const k = alt / ALTURA_MAX;
+  const gap = Math.max(2, Math.round(7 * k));
+  const px = (v, min) => Math.max(min, Math.round(v * k)) + "px";
+  lista.style.setProperty("--h", alt - gap + "px");
+  lista.style.setProperty("--fn", px(15, 11));
+  lista.style.setProperty("--fp", px(14, 10));
+  lista.style.setProperty("--fr", px(17, 12));
+  lista.style.setProperty("--frn", px(14, 11));
+  lista.style.setProperty("--hr", Math.min(28, alt - gap - 2) + "px");
+  return { alt, gap };
+}
+
+function render(estado) {
+  ultimo = estado;
+  const ordem = ordenar(estado.opcoes);
+  const { alt: ALTURA, gap } = medir(ordem.length);
+  const max = Math.max(1, ...ordem.map(j => j.votos));
+  const ids = new Set(ordem.map(j => j.id));
+  Object.keys(linhas).forEach(id => { if (!ids.has(id)) { linhas[id].el.remove(); delete linhas[id]; } });
+  ordem.forEach((j, i) => {
+    let l = linhas[j.id];
+    if (!l) {
+      const el = document.createElement("div");
+      el.className = "jogo";
+      el.innerHTML = '<div class="barra"></div><div class="pos"></div><div class="nome"></div><span></span>';
+      lista.appendChild(el);
+      l = linhas[j.id] = { el, roleta: new Roleta(el.lastElementChild) };
+    }
+    l.el.style.top = i * ALTURA + "px";
+    l.el.querySelector(".pos").textContent = i + 1;
+    l.el.querySelector(".nome").textContent = j.nome;
+    l.el.querySelector(".barra").style.width = (j.votos / max * 100) + "%";
+    l.el.classList.toggle("lider", i === 0 && j.votos > 0);
+    l.roleta.definir(j.votos);
+  });
+  lista.style.height = Math.max(0, ordem.length * ALTURA - gap) + "px";
+}
+addEventListener("resize", () => ultimo && render(ultimo));
+
+conectar({
+  aoEstado: render,
+  aoVoto: v => linhas[v.jogoId]?.roleta.votar(v.quem, v.votos)
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "buildCommand": "echo sem build",
+  "outputDirectory": "public",
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/admin", "destination": "/", "permanent": false },
+    { "source": "/admin.html", "destination": "/", "permanent": false }
+  ]
+}

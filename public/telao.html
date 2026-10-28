@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Telão da votação</title>
+<link rel="stylesheet" href="/css/site.css">
+<style>
+  html,body{width:100%;height:100%;overflow:hidden;background:#fff}
+  #palco{position:absolute;left:50%;top:50%;width:1920px;height:1080px;padding:64px 96px;display:grid;grid-template-columns:minmax(0,1fr) 560px;grid-template-rows:auto minmax(0,1fr);column-gap:72px;row-gap:40px}
+  header{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:flex-end}
+  header h1{font-size:140px}
+  .como{text-align:right;font-size:22px;color:var(--muted);line-height:1.7;padding-bottom:12px}
+  .como .chip-voto{font-size:22px}
+  .eyebrow{font-size:15px}
+  /* --k encolhe as linhas quando há mais de 6 jogos, para nada ficar cortado */
+  #ranking{--k:1}
+  #ranking .linha-rank{height:calc(100px * var(--k));grid-template-columns:calc(56px * var(--k)) calc(160px * var(--k)) minmax(0,1fr) auto;gap:calc(28px * var(--k));padding:0 28px 0 20px;border-radius:16px}
+  #ranking .linha-rank .pos{font-size:calc(48px * var(--k))}
+  #ranking .linha-rank .capa{width:calc(160px * var(--k));height:calc(75px * var(--k));border-radius:8px}
+  #ranking .linha-rank .meio{gap:calc(10px * var(--k))}
+  #ranking .linha-rank .nome{font-size:max(18px, calc(28px * var(--k)))}
+  #ranking .trilho{height:calc(10px * var(--k))}
+  #ranking .linha-rank .roleta{font-size:calc(64px * var(--k));max-width:320px}
+  #ranking .linha-rank .roleta.mostrando-nome{font-size:calc(44px * var(--k))}
+  #ranking .linha-rank .pct{font-size:max(13px, calc(16px * var(--k)))}
+  #ranking .linha-rank .numeros{min-width:110px}
+  aside{display:flex;flex-direction:column;gap:20px;min-height:0}
+  aside .cartao{flex:none}
+  aside .feed-cartao{flex:1 1 auto;min-height:0}
+  .lider-capa{aspect-ratio:auto;height:200px}
+  .cartao .corpo{padding:24px 28px}
+  .lider-nome{font-size:60px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:8px 0 6px}
+  .lider-info{font-size:19px}
+  .feed li{font-size:19px;padding:11px 0}
+  .feed .av{width:36px;height:36px;font-size:14px}
+  .total .display{font-size:60px}
+  .selo{font-size:15px;padding:8px 16px}
+  .feed-topo{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .total-mini{font-size:16px;color:var(--muted)}
+  .total-mini b{font-size:40px;color:var(--text);margin-right:4px}
+</style>
+</head>
+<body>
+<div id="palco">
+  <header>
+    <div>
+      <span class="selo" id="selo"><span class="ponto"></span><span id="seloTxt">Votação aberta</span></span>
+      <h1 class="display" style="margin-top:24px" id="pergunta">Qual o próximo jogo?</h1>
+    </div>
+    <div class="como">Resgate <span class="chip-voto" id="chip">Voto: nome do jogo</span><br>com ChicoPoints na Twitch</div>
+  </header>
+
+  <ol class="ranking" id="ranking"></ol>
+
+  <aside>
+    <div class="cartao">
+      <div class="lider-capa capa" id="liderCapa"></div>
+      <div class="corpo">
+        <div class="eyebrow" id="liderRotulo">Na frente</div>
+        <div class="lider-nome display" id="liderNome">Nenhum voto ainda</div>
+        <div class="lider-info" id="liderInfo">O primeiro voto abre a corrida.</div>
+      </div>
+    </div>
+    <div class="cartao feed-cartao"><div class="corpo">
+      <div class="feed-topo"><span class="eyebrow">Últimos votos</span><span class="total-mini"><b class="display" id="total">0</b> votos no total</span></div>
+      <ul class="feed" id="feed"></ul>
+    </div></div>
+  </aside>
+</div>
+
+<script type="module">
+import { conectar, ordenar, el, capa, iniciais, TEXTOS } from "/js/ao-vivo.js";
+import { Roleta } from "/js/roleta.js";
+
+// /telao?lista=entre mostra a votação entre lives
+document.getElementById("pergunta").textContent = TEXTOS.pergunta;
+document.getElementById("chip").textContent = TEXTOS.chip;
+
+const palco = document.getElementById("palco");
+function escala() { const s = Math.min(innerWidth / 1920, innerHeight / 1080); palco.style.transform = `translate(-50%,-50%) scale(${s})`; }
+addEventListener("resize", escala); escala();
+
+const ALTURA_MAX = 110; // linha de 100px + 10px de espaço (até 6 jogos cabem assim)
+const linhas = {};
+let estado;
+
+function render() {
+  const box = document.getElementById("ranking");
+  const ordem = ordenar(estado.opcoes);
+  const ALTURA = Math.min(ALTURA_MAX, Math.floor((box.clientHeight + 10) / Math.max(ordem.length, 1)));
+  box.style.setProperty("--k", ((ALTURA - 10) / 100).toFixed(3));
+  const max = Math.max(1, ...ordem.map(j => j.votos));
+  const ids = new Set(ordem.map(j => j.id));
+  Object.keys(linhas).forEach(id => { if (!ids.has(id)) { linhas[id].li.remove(); delete linhas[id]; } });
+  ordem.forEach((j, i) => {
+    let l = linhas[j.id];
+    if (!l) {
+      const li = el("li", "linha-rank");
+      const meio = el("div", "meio");
+      meio.append(el("span", "nome"), Object.assign(el("div", "trilho"), { innerHTML: "<i></i>" }));
+      const nums = el("div", "numeros"); const slot = el("span");
+      nums.append(slot, el("span", "pct"));
+      li.append(el("span", "pos"), capa(j.capa, j.nome), meio, nums);
+      box.append(li);
+      l = linhas[j.id] = { li, roleta: new Roleta(slot), capaUrl: j.capa };
+    }
+    if (l.capaUrl !== j.capa) { l.li.children[1].replaceWith(capa(j.capa, j.nome)); l.capaUrl = j.capa; }
+    l.li.style.top = i * ALTURA + "px";
+    l.li.querySelector(".pos").textContent = i + 1;
+    l.li.querySelector(".nome").textContent = j.nome;
+    l.li.querySelector(".trilho i").style.width = (j.votos / max * 100) + "%";
+    l.li.querySelector(".pct").textContent = estado.total ? Math.round(j.votos / estado.total * 100) + "%" : "0%";
+    l.li.classList.toggle("lider", i === 0 && j.votos > 0);
+    l.roleta.definir(j.votos);
+  });
+
+  const [a, b] = ordem;
+  const rot = document.getElementById("liderRotulo"), nome = document.getElementById("liderNome"), info = document.getElementById("liderInfo");
+  if (!a || !a.votos) { rot.textContent = "Na frente"; nome.textContent = "Nenhum voto ainda"; info.textContent = "O primeiro voto abre a corrida."; }
+  else if (b && a.votos === b.votos) {
+    rot.textContent = "Empate";
+    const empatados = ordem.filter(j => j.votos === a.votos);
+    nome.textContent = empatados.length === 2 ? empatados.map(j => j.nome).join(" e ") : `${empatados.length} jogos empatados`;
+    info.textContent = `${a.votos} ${a.votos === 1 ? "voto" : "votos"} cada`;
+  } else {
+    rot.textContent = "Na frente"; nome.textContent = a.nome;
+    info.textContent = `${a.votos} votos · ${a.votos - (b?.votos || 0)} à frente${b ? " de " + b.nome : ""}`;
+  }
+  const capaBox = document.getElementById("liderCapa");
+  const chave = a && a.votos ? a.id + "|" + (a.capa || "") : "";
+  if (capaBox.dataset.chave !== chave) {
+    const nova = a && a.votos ? capa(a.capa, a.nome, "lider-capa capa") : el("div", "lider-capa capa");
+    nova.id = "liderCapa"; nova.dataset.chave = chave; capaBox.replaceWith(nova);
+  }
+
+  const feed = document.getElementById("feed");
+  feed.replaceChildren();
+  const ult = estado.ultimos.slice(0, 3);
+  if (!ult.length) feed.append(el("li", "vazio", "Os votos aparecem aqui."));
+  ult.forEach(u => {
+    const li = el("li"); const txt = el("span", "txt");
+    txt.append(el("b", null, u.quem), document.createTextNode(" votou em "), el("b", null, u.jogo));
+    li.append(el("span", "av", iniciais(u.quem)), txt); feed.append(li);
+  });
+  document.getElementById("total").textContent = estado.total;
+  document.getElementById("selo").classList.toggle("aovivo", !!estado.aoVivo);
+  document.getElementById("seloTxt").textContent = estado.aoVivo ? "Contando ao vivo" : "Votação aberta";
+}
+
+conectar({
+  aoEstado: s => { estado = s; render(); },
+  aoVoto: v => {
+    const l = linhas[v.jogoId]; if (!l) return;
+    l.roleta.votar(v.quem, v.votos);
+    l.li.classList.remove("flash"); void l.li.offsetWidth; l.li.classList.add("flash");
+  }
+});
+</script>
+</body>
+</html>

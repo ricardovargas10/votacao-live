@@ -1,0 +1,193 @@
+/* ===== Base do site (fundo branco, estilo Notion) ===== */
+@import url("/css/fontes.css");
+
+:root{
+  --bg:#ffffff;
+  --surface:#f7f7f5;
+  --surface-2:#f1f1ef;
+  --line:#ebebea;
+  --line-2:#e3e2e0;
+  --text:#191919;
+  --text-2:#37352f;
+  --muted:#787774;
+  --accent:#9146ff;
+  --accent-soft:#f3ecff;
+  --accent-text:#6a2fd1;
+  --lider:#191919;
+  --raio:12px;
+  --raio-sm:8px;
+  --sombra:0 1px 2px rgba(15,15,15,.04),0 4px 16px rgba(15,15,15,.04);
+  --display:"Bebas Neue",Impact,sans-serif;
+  --body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+
+.container{width:min(1200px,100% - 48px);margin-inline:auto}
+.display{font-family:var(--display);font-weight:400;letter-spacing:.5px;line-height:.92}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted)}
+
+/* ===== Navegação ===== */
+.nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.86);backdrop-filter:saturate(1.6) blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
+.nav.rolou{border-bottom-color:var(--line)}
+.nav .container{display:flex;align-items:center;justify-content:space-between;height:68px}
+.marca{font-family:var(--display);font-size:30px;letter-spacing:1px;text-decoration:none;line-height:1}
+.nav-links{display:flex;gap:4px;list-style:none}
+.nav-links a{display:block;padding:8px 12px;border-radius:var(--raio-sm);text-decoration:none;font-size:14px;font-weight:500;color:var(--muted);transition:background .15s,color .15s}
+.nav-links a:hover{background:var(--surface);color:var(--text)}
+.selo{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--surface);font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.selo .ponto{width:8px;height:8px;border-radius:50%;background:#c9c8c5}
+.selo.aovivo{background:#fdebec;color:#c4333b}
+.selo.aovivo .ponto{background:#e5484d;animation:pulsar 1.6s infinite}
+@keyframes pulsar{0%{box-shadow:0 0 0 0 rgba(229,72,77,.5)}100%{box-shadow:0 0 0 8px rgba(229,72,77,0)}}
+
+/* ===== Seções ===== */
+.secao{padding:112px 0}
+.secao + .secao{border-top:1px solid var(--line)}
+.secao-topo{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;margin-bottom:48px;flex-wrap:wrap}
+.secao-topo h2{font-size:clamp(48px,6vw,72px)}
+.secao-topo p{max-width:440px;color:var(--muted)}
+
+/* ===== Votação (topo) ===== */
+.hero{padding:88px 0 112px}
+.hero h1{font-size:clamp(72px,11vw,148px);margin:20px 0 24px}
+.hero .lead{max-width:620px;font-size:18px;color:var(--text-2)}
+.hero .lead b{font-weight:600}
+.chip-voto{display:inline-block;padding:1px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent-text);font-weight:600;white-space:nowrap}
+.votacao-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:40px;margin-top:64px;align-items:start}
+
+.ranking{position:relative;list-style:none}
+.linha-rank{position:absolute;left:0;right:0;display:grid;grid-template-columns:44px 96px minmax(0,1fr) auto;align-items:center;gap:20px;height:84px;padding:0 20px 0 16px;border-radius:var(--raio);transition:top .7s cubic-bezier(.2,.8,.2,1),background .3s}
+.linha-rank:hover{background:var(--surface)}
+.linha-rank .pos{font-family:var(--display);font-size:34px;color:#c3c2bf;text-align:center}
+.linha-rank .capa{width:96px;height:54px;border-radius:6px}
+.linha-rank .meio{min-width:0;display:flex;flex-direction:column;gap:10px}
+.linha-rank .nome{font-weight:600;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trilho{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.trilho i{display:block;height:100%;width:0;border-radius:99px;background:#d4d3d0;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.linha-rank .numeros{display:flex;flex-direction:column;align-items:flex-end;min-width:72px}
+.linha-rank .roleta{font-family:var(--display);font-size:40px;line-height:1}
+.linha-rank .pct{font-size:12px;color:var(--muted);font-weight:500}
+.linha-rank.lider{background:var(--surface)}
+.linha-rank.lider .pos{color:var(--text)}
+.linha-rank.lider .trilho i{background:var(--accent)}
+.linha-rank.flash{animation:flash 1.2s ease}
+@keyframes flash{0%{background:var(--accent-soft)}100%{background:transparent}}
+
+/* número que vira nome (roleta) */
+.roleta{display:inline-flex;justify-content:flex-end;max-width:220px;overflow:hidden;white-space:nowrap}
+.roleta .roleta-txt{display:inline-block;overflow:hidden;text-overflow:ellipsis}
+.roleta .roleta-txt.troca{animation:trocar .22s ease-out}
+.roleta.mostrando-nome{color:var(--accent-text)}
+@keyframes trocar{from{transform:translateY(55%);opacity:0}to{transform:none;opacity:1}}
+
+.lateral{display:flex;flex-direction:column;gap:16px;position:sticky;top:96px}
+.cartao{border:1px solid var(--line);border-radius:var(--raio);background:var(--bg);box-shadow:var(--sombra);overflow:hidden}
+.cartao .corpo{padding:24px}
+.lider-capa{aspect-ratio:460/215;background:var(--surface)}
+.lider-capa.capa{border-radius:0}
+.lider-nome{font-size:44px;margin:10px 0 8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.lider-info{color:var(--muted);font-size:14px}
+.lider-info b{color:var(--text);font-weight:600}
+.feed{list-style:none;display:flex;flex-direction:column}
+.feed li{display:flex;align-items:center;gap:12px;padding:10px 0;font-size:14px;border-top:1px solid var(--line);animation:entrar .35s ease}
+.feed li:first-child{border-top:0}
+.feed .av{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-text);font-size:12px;font-weight:700}
+.feed .txt{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.feed .txt b{color:var(--text);font-weight:600}
+.feed .vazio{color:var(--muted);border:0}
+@keyframes entrar{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.total{display:flex;align-items:baseline;justify-content:space-between}
+.total .display{font-size:48px}
+
+/* ===== Capa com reserva ===== */
+.capa{position:relative;overflow:hidden;background:linear-gradient(135deg,#f1f1ef,#e9e7f2)}
+.capa img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s}
+.capa.carregada img{opacity:1}
+.capa-reserva{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-size:22px;color:#a8a6b5;letter-spacing:1px}
+
+/* ===== Galeria estilo Notion ===== */
+.galeria{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.card-jogo{border:1px solid var(--line);border-radius:var(--raio);overflow:hidden;background:var(--bg);transition:box-shadow .2s,transform .2s;display:flex;flex-direction:column}
+.card-jogo:hover{box-shadow:0 10px 30px rgba(15,15,15,.08);transform:translateY(-2px)}
+.card-jogo .capa{aspect-ratio:460/215}
+.card-jogo .corpo{padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px;flex:1}
+.card-jogo h3{font-family:var(--display);font-weight:400;font-size:30px;line-height:1;letter-spacing:.4px}
+.props{display:flex;flex-wrap:wrap;gap:6px}
+.card-jogo .rodape{margin-top:auto;display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.card-jogo .rodape b{color:var(--text);font-weight:600}
+.posicao{font-family:var(--display);font-size:22px;color:var(--text)}
+
+/* pílulas no estilo das propriedades do Notion */
+.pilula{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:4px;font-size:12px;font-weight:500;white-space:nowrap;background:var(--surface-2);color:var(--text-2)}
+.pilula.cinza{background:#f1f1ef;color:#787774}
+.pilula.laranja{background:#fbecdd;color:#c75d0a}
+.pilula.azul{background:#e7f3f8;color:#0b6e99}
+.pilula.vermelho{background:#fdebec;color:#d23c3c}
+.pilula.verde{background:#edf3ec;color:#448361}
+.pilula.roxo{background:var(--accent-soft);color:var(--accent-text)}
+
+/* ===== Sinopses ===== */
+.sinopses{display:flex;flex-direction:column;gap:72px}
+.sinopse{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:56px;align-items:center}
+.sinopse:nth-child(even) .capa{order:2}
+.sinopse .capa{aspect-ratio:16/9;border-radius:var(--raio)}
+.sinopse h3{font-size:clamp(44px,5vw,64px);margin-bottom:12px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin-bottom:20px}
+.meta span + span::before{content:"·";margin-right:14px;color:#c3c2bf}
+.sinopse p{font-size:17px;color:var(--text-2);max-width:56ch}
+.sinopse .sem{color:var(--muted);font-style:italic}
+.link-loja{display:inline-flex;margin-top:20px;font-size:14px;font-weight:600;color:var(--text);text-decoration:none;border-bottom:1px solid var(--line-2);padding-bottom:2px}
+.link-loja:hover{border-color:var(--text)}
+
+/* ===== Biblioteca (tabela estilo Notion) ===== */
+.barra-filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+.busca{flex:1 1 260px;max-width:320px;height:36px;padding:0 12px 0 34px;border:1px solid var(--line-2);border-radius:var(--raio-sm);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23787774' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 10px center no-repeat;outline:none;transition:border-color .15s,box-shadow .15s}
+.busca:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.filtro{height:32px;padding:0 12px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}
+.filtro:hover{color:var(--text);border-color:#cfcecb}
+.filtro[aria-pressed="true"]{background:var(--text);border-color:var(--text);color:#fff}
+.tabela-box{border-top:1px solid var(--line);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:820px}
+th{position:sticky;top:0;text-align:left;font-weight:500;color:var(--muted);font-size:13px;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{background:var(--surface)}
+th .seta{margin-left:4px;opacity:.5}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:var(--surface)}
+.cel-nome{display:flex;align-items:center;gap:12px;font-weight:600}
+.cel-nome .capa{flex:none;width:56px;height:26px;border-radius:4px}
+.cel-nome .capa-reserva{font-size:12px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.check{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:4px;border:1.5px solid #c3c2bf}
+.check.on{background:var(--accent);border-color:var(--accent)}
+.check.on::after{content:"";width:9px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.contagem{margin-top:12px;font-size:13px;color:var(--muted)}
+.vazio-tabela{padding:40px 12px;text-align:center;color:var(--muted)}
+
+footer{padding:48px 0 64px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+/* ===== Responsivo ===== */
+@media (max-width:1000px){
+  .votacao-grid{grid-template-columns:1fr}
+  .lateral{position:static}
+  .galeria{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sinopse{grid-template-columns:1fr;gap:24px}
+  .sinopse:nth-child(even) .capa{order:0}
+}
+@media (max-width:640px){
+  .nav-links{display:none}
+  .secao,.hero{padding:72px 0}
+  .galeria{grid-template-columns:1fr}
+  .linha-rank{grid-template-columns:32px 64px minmax(0,1fr) auto;gap:12px;padding:0 10px}
+  .linha-rank .capa{width:64px;height:36px}
+  .linha-rank .roleta{font-size:32px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}

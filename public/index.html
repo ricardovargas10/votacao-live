@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qual o próximo jogo? · Ric Chico</title>
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="container">
+    <a class="marca" href="#votacao">Ric Chico</a>
+    <ul class="nav-links">
+      <li><a href="#votacao">Votação</a></li>
+      <li><a href="#galeria">Jogos</a></li>
+      <li><a href="#sinopses">Sinopses</a></li>
+      <li><a href="#biblioteca">Biblioteca</a></li>
+    </ul>
+    <span class="selo" id="selo"><span class="ponto"></span><span id="seloTxt">Votação aberta</span></span>
+  </div>
+</nav>
+
+<main>
+  <section class="hero" id="votacao">
+    <div class="container">
+      <div class="eyebrow">Votação do próximo jogo</div>
+      <h1 class="display">Qual o próximo jogo?</h1>
+      <p class="lead">Resgate <span class="chip-voto">Voto: nome do jogo</span> com ChicoPoints na Twitch. Cada resgate soma um voto, e o placar continua de uma live para a outra.</p>
+
+      <div class="votacao-grid">
+        <ol class="ranking" id="ranking" aria-label="Ranking da votação"></ol>
+
+        <aside class="lateral">
+          <div class="cartao">
+            <div class="lider-capa capa" id="liderCapa"></div>
+            <div class="corpo">
+              <div class="eyebrow" id="liderRotulo">Na frente</div>
+              <div class="lider-nome display" id="liderNome">Nenhum voto ainda</div>
+              <div class="lider-info" id="liderInfo">O primeiro voto abre a corrida.</div>
+            </div>
+          </div>
+          <div class="cartao"><div class="corpo">
+            <div class="eyebrow" style="margin-bottom:8px">Últimos votos</div>
+            <ul class="feed" id="feed"></ul>
+          </div></div>
+          <div class="cartao"><div class="corpo total">
+            <span class="eyebrow">Total de votos</span>
+            <span class="display" id="total">0</span>
+          </div></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao" id="galeria">
+    <div class="container">
+      <div class="secao-topo">
+        <div>
+          <div class="eyebrow">Na votação</div>
+          <h2 class="display">Os jogos da rodada</h2>
+        </div>
+        <p>Os jogos marcados como opção na lista do Ric. Os votos de cada um aparecem no rodapé do card.</p>
+      </div>
+      <div class="galeria" id="cards"></div>
+    </div>
+  </section>
+
+  <section class="secao" id="sinopses">
+    <div class="container">
+      <div class="secao-topo">
+        <div>
+          <div class="eyebrow">Antes de votar</div>
+          <h2 class="display">Sobre cada jogo</h2>
+        </div>
+        <p>Sinopse oficial da loja da Steam, sem spoiler além da premissa.</p>
+      </div>
+      <div class="sinopses" id="listaSinopses"></div>
+    </div>
+  </section>
+
+  <section class="secao" id="biblioteca">
+    <div class="container">
+      <div class="secao-topo">
+        <div>
+          <div class="eyebrow">Lista completa</div>
+          <h2 class="display">Biblioteca</h2>
+        </div>
+        <p>Todos os jogos que o Ric quer jogar, já jogou ou está pensando em jogar.</p>
+      </div>
+      <div class="barra-filtros">
+        <input class="busca" id="busca" type="search" placeholder="Buscar jogo" aria-label="Buscar jogo">
+        <div id="filtros" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+      <div class="tabela-box">
+        <table>
+          <thead><tr id="cabecalho"></tr></thead>
+          <tbody id="linhas"></tbody>
+        </table>
+      </div>
+      <div class="contagem" id="contagem"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <span>Ric Chico · lives terça, quinta e sábado às 19h</span>
+    <span>Twitch · YouTube · Kick</span>
+  </div>
+</footer>
+
+<script type="module" src="/js/home.js"></script>
+</body>
+</html>

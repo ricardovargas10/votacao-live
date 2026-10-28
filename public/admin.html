@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin · Votação</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/css/site.css">
+<style>
+  body{background:var(--surface)}
+  .topo-admin{padding:56px 0 32px}
+  .topo-admin h1{font-size:72px;margin-top:8px}
+  .topo-admin p{color:var(--muted);max-width:560px;margin-top:8px}
+  .grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;padding-bottom:96px;align-items:start}
+  .bloco{background:#fff;border:1px solid var(--line);border-radius:var(--raio);padding:28px}
+  .bloco.largo{grid-column:1 / -1}
+  .bloco h2{font-family:var(--display);font-weight:400;font-size:36px;line-height:1;margin-bottom:6px}
+  .bloco > p{color:var(--muted);font-size:14px;margin-bottom:20px}
+  .estado{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--raio-sm);background:var(--surface);font-size:14px;margin-bottom:20px}
+  .estado .luz{flex:none;width:9px;height:9px;border-radius:50%;background:#c3c2bf}
+  .estado.ok .luz{background:#46a758}
+  .estado.erro .luz{background:#e5484d}
+  label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+  .campo{width:100%;height:40px;padding:0 12px;border:1px solid var(--line-2);border-radius:var(--raio-sm);background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+  .campo:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .dica{font-size:12px;color:var(--muted);margin-top:6px}
+  .acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 16px;border-radius:var(--raio-sm);border:1px solid var(--line-2);background:#fff;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .15s,border-color .15s}
+  .btn:hover{background:var(--surface)}
+  .btn.primario{background:var(--text);border-color:var(--text);color:#fff}
+  .btn.primario:hover{background:#000}
+  .btn.twitch{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.perigo{color:#d23c3c}
+  .btn:disabled{opacity:.5;cursor:default}
+  .linha-voto{display:grid;grid-template-columns:minmax(0,1fr) 48px auto;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .linha-voto:last-child{border-bottom:0}
+  .linha-voto .n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .linha-voto .v{font-family:var(--display);font-size:28px;text-align:right}
+  .mini{height:30px;padding:0 10px;font-size:13px}
+  .grupo{display:flex;gap:4px}
+  .relatorio{margin-top:16px;font-size:13px;display:flex;flex-direction:column;gap:6px}
+  .relatorio .ok{color:#448361}
+  .relatorio .falha{color:#d23c3c}
+  .copiar{display:grid;grid-template-columns:110px minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .copiar:last-child{border-bottom:0}
+  .copiar code{font-size:13px;background:var(--surface);padding:6px 10px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .steam-linha{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 120px auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .steam-linha:last-child{border-bottom:0}
+  .steam-linha .achado{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .steam-linha .campo{height:32px}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);opacity:0;padding:12px 18px;border-radius:10px;background:var(--text);color:#fff;font-size:14px;transition:all .25s;pointer-events:none}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  @media (max-width:900px){.grade{grid-template-columns:1fr}.steam-linha{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="topo-admin">
+    <div class="eyebrow">Só no seu PC</div>
+    <h1 class="display">Admin da votação</h1>
+    <p>Esta página só abre no computador onde o projeto está rodando. Ela não aparece no site, no telão nem no overlay.</p>
+  </header>
+
+  <div class="grade">
+    <section class="bloco">
+      <h2>Twitch</h2>
+      <p>Conta do canal que recebe os resgates de ChicoPoints.</p>
+      <div class="estado" id="twEstado"><span class="luz"></span><span id="twTxt">Carregando…</span></div>
+      <label for="clientId">Client ID</label>
+      <input class="campo" id="clientId" autocomplete="off">
+      <label for="clientSecret">Client Secret</label>
+      <input class="campo" id="clientSecret" type="password" autocomplete="off">
+      <div class="dica">No app da Twitch, a OAuth Redirect URL precisa ser exatamente <b id="redirect"></b></div>
+      <div class="acoes">
+        <button class="btn" id="salvarTwitch">Salvar chaves</button>
+        <a class="btn twitch" href="/auth/twitch">Conectar com a Twitch</a>
+        <button class="btn perigo" id="desconectar">Desconectar</button>
+      </div>
+    </section>
+
+    <section class="bloco">
+      <h2>Recompensas</h2>
+      <p>Cria "Voto: nome do jogo" para cada jogo marcado em É opção? e "Entre lives: nome do jogo" para cada um marcado em Entre lives? no Notion. Jogos desmarcados têm a recompensa desligada sozinha.</p>
+      <label for="custo">Custo de cada voto (ChicoPoints)</label>
+      <input class="campo" id="custo" type="number" min="1">
+      <label for="custoEntre">Custo de cada voto entre lives (ChicoPoints)</label>
+      <input class="campo" id="custoEntre" type="number" min="1">
+      <div class="acoes"><button class="btn primario" id="criarRecompensas">Criar ou atualizar recompensas</button></div>
+      <div class="relatorio" id="relatorio"></div>
+    </section>
+
+    <section class="bloco">
+      <h2>Votos</h2>
+      <p>Ajuste manual e testes. Os testes aparecem no site, no telão e no overlay.</p>
+      <div id="votos"></div>
+      <div class="acoes">
+        <button class="btn" id="simular1">Simular 1 voto</button>
+        <button class="btn" id="simular12">Simular 12 votos seguidos</button>
+        <button class="btn perigo" id="zerarTudo">Zerar todos</button>
+      </div>
+    </section>
+
+    <section class="bloco">
+      <h2>Votos entre lives</h2>
+      <p>Jogos marcados em Entre lives? no Notion. Placar separado da votação principal.</p>
+      <div id="votosEntre"></div>
+      <div class="acoes">
+        <button class="btn" id="simularEntre">Simular 12 votos entre lives</button>
+        <button class="btn perigo" id="zerarEntre">Zerar entre lives</button>
+      </div>
+    </section>
+
+    <section class="bloco">
+      <h2>Notion</h2>
+      <p>A base "Ideias de jogos" alimenta o site. Mudanças no Notion aparecem em até 2 minutos.</p>
+      <div class="estado" id="ntEstado"><span class="luz"></span><span id="ntTxt">Carregando…</span></div>
+      <label for="notionToken">Token da integração</label>
+      <input class="campo" id="notionToken" type="password" autocomplete="off">
+      <label for="databaseId">ID da base</label>
+      <input class="campo" id="databaseId" autocomplete="off">
+      <div class="acoes">
+        <button class="btn primario" id="salvarNotion">Salvar e sincronizar</button>
+        <button class="btn" id="sincronizar">Sincronizar agora</button>
+      </div>
+    </section>
+
+    <section class="bloco largo">
+      <h2>Site público</h2>
+      <p>Manda o placar para o Supabase, e o site na Vercel mostra ao vivo para quem estiver fora do seu PC. No Supabase: Project Settings > API Keys (chaves) e Data API (URL).</p>
+      <div class="estado" id="sbEstado"><span class="luz"></span><span id="sbTxt">Carregando…</span></div>
+      <label for="sbUrl">Project URL</label>
+      <input class="campo" id="sbUrl" autocomplete="off" placeholder="https://xxxx.supabase.co">
+      <label for="sbPublica">Chave pública (Publishable key, começa com sb_publishable_)</label>
+      <input class="campo" id="sbPublica" autocomplete="off">
+      <label for="sbSecreta">Chave secreta (Secret key, começa com sb_secret_)</label>
+      <input class="campo" id="sbSecreta" type="password" autocomplete="off">
+      <div class="dica">A chave secreta fica só no seu PC. A pública vai para o site, como o Supabase manda.</div>
+      <div class="acoes"><button class="btn primario" id="salvarSupabase">Salvar e enviar placar</button></div>
+    </section>
+
+    <section class="bloco largo">
+      <h2>Capas e sinopses</h2>
+      <p>Cada jogo da votação busca capa e sinopse na Steam. Se achou o jogo errado, cole o número da página do jogo na Steam (o número que aparece em store.steampowered.com/app/<b>NÚMERO</b>).</p>
+      <div id="steam"></div>
+    </section>
+
+    <section class="bloco largo">
+      <h2>Links para o OBS</h2>
+      <p>Use estes endereços em fontes do tipo Navegador.</p>
+      <div id="links"></div>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { conectar, el } from "/js/ao-vivo.js";
+
+const $ = id => document.getElementById(id);
+let admin = null, estado = null;
+
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("on"), 2600); }
+
+async function post(rota, corpo = {}) {
+  const r = await fetch("/api/admin/" + rota, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.erro || "Erro " + r.status);
+  return d;
+}
+async function carregarAdmin() {
+  admin = await (await fetch("/api/admin/estado")).json();
+  renderAdmin();
+}
+
+function estadoBox(id, txtId, tipo, texto) {
+  $(id).className = "estado " + tipo;
+  $(txtId).textContent = texto;
+}
+
+function renderAdmin() {
+  const tw = admin.twitch;
+  estadoBox("twEstado", "twTxt", tw.conectado ? "ok" : (tw.login ? "erro" : ""), tw.conectado ? `Conectado como ${tw.login} · ${tw.mensagem}` : tw.mensagem);
+  if (document.activeElement !== $("clientId")) $("clientId").value = tw.clientId;
+  $("clientSecret").placeholder = tw.temSecret ? "Salvo (cole outro para trocar)" : "";
+  $("redirect").textContent = tw.redirect;
+  if (tw.custo && !$("custo").value) $("custo").value = tw.custo;
+  if (tw.custoEntre && !$("custoEntre").value) $("custoEntre").value = tw.custoEntre;
+
+  const sb = admin.supabase;
+  if (!sb.ativo) estadoBox("sbEstado", "sbTxt", "", "Não configurado. O site só funciona no seu PC.");
+  else if (sb.erro) estadoBox("sbEstado", "sbTxt", "erro", "Erro: " + sb.erro);
+  else estadoBox("sbEstado", "sbTxt", "ok", sb.ultimoEnvio ? `Enviando · último envio às ${new Date(sb.ultimoEnvio).toLocaleTimeString("pt-BR")}` : "Pronto, esperando o próximo voto");
+  if (document.activeElement !== $("sbUrl") && !$("sbUrl").value) $("sbUrl").value = sb.url;
+  $("sbPublica").placeholder = sb.temPublica ? "Salva (cole outra para trocar)" : "sb_publishable_…";
+  $("sbSecreta").placeholder = sb.temSecreta ? "Salva (cole outra para trocar)" : "sb_secret_…";
+
+  const nt = admin.notion;
+  const quando = nt.ultimaSync ? new Date(nt.ultimaSync).toLocaleTimeString("pt-BR") : null;
+  if (nt.erro) estadoBox("ntEstado", "ntTxt", "erro", "Erro: " + nt.erro);
+  else if (nt.origem === "notion") estadoBox("ntEstado", "ntTxt", "ok", `Lendo do Notion${quando ? " · atualizado às " + quando : ""}`);
+  else estadoBox("ntEstado", "ntTxt", "", "Usando a cópia da lista salva no projeto. Conecte o Notion para editar por lá.");
+  $("notionToken").placeholder = nt.configurado ? "Salvo (cole outro para trocar)" : "secret_… ou ntn_…";
+  if (document.activeElement !== $("databaseId")) $("databaseId").value = nt.databaseId;
+
+  const s = $("steam"); s.replaceChildren();
+  admin.steam.forEach(j => {
+    const linha = el("div", "steam-linha");
+    const campo = el("input", "campo"); campo.placeholder = "Número na Steam"; campo.value = j.manual || "";
+    const b = el("button", "btn mini", "Salvar");
+    b.onclick = async () => { b.disabled = true; try { admin = await post("steam", { id: j.id, appId: campo.value }); renderAdmin(); toast("Capa atualizada"); } catch (e) { toast(e.message); } b.disabled = false; };
+    linha.append(el("b", null, j.nome), el("span", "achado", j.nomeSteam ? `Steam: ${j.nomeSteam} (${j.appId})` : "Não encontrado"), campo, b);
+    s.append(linha);
+  });
+
+  const l = $("links"); l.replaceChildren();
+  [["Overlay", admin.links.overlay, "Largura 470 · Altura 400"], ["Telão", admin.links.telao, "Largura 1920 · Altura 1080"],
+   ["Overlay entre lives", admin.links.overlayEntre, "Largura 470 · Altura 400"], ["Telão entre lives", admin.links.telaoEntre, "Largura 1920 · Altura 1080"],
+   ["Site", admin.links.site, "Para abrir no navegador"]].forEach(([nome, url, dica]) => {
+    const linha = el("div", "copiar");
+    const b = el("button", "btn mini", "Copiar");
+    b.onclick = () => { navigator.clipboard.writeText(url); toast(`${nome} copiado`); };
+    const info = el("div"); info.append(el("code", null, url), el("div", "dica", dica));
+    linha.append(el("b", null, nome), info, b);
+    l.append(linha);
+  });
+}
+
+function renderLista(boxId, opcoes, lista) {
+  const box = $(boxId); box.replaceChildren();
+  if (!opcoes.length) box.append(el("div", "dica", lista === "entre" ? "Nenhum jogo marcado em Entre lives? no Notion." : "Nenhum jogo marcado em É opção? no Notion."));
+  opcoes.forEach(j => {
+    const linha = el("div", "linha-voto");
+    const g = el("div", "grupo");
+    const menos = el("button", "btn mini", "−1"), mais = el("button", "btn mini", "+1"), zero = el("button", "btn mini perigo", "Zerar");
+    menos.onclick = () => post("votos", { id: j.id, delta: -1, lista });
+    mais.onclick = () => post("votos", { id: j.id, delta: 1, lista });
+    zero.onclick = () => confirm(`Zerar os votos de ${j.nome}?`) && post("zerar", { id: j.id, lista });
+    g.append(menos, mais, zero);
+    linha.append(el("span", "n", j.nome), el("span", "v", j.votos), g);
+    box.append(linha);
+  });
+}
+function renderVotos() {
+  renderLista("votos", estado.opcoes, "principal");
+  renderLista("votosEntre", estado.entre?.opcoes || [], "entre");
+}
+
+$("salvarTwitch").onclick = async () => {
+  try { admin = await post("twitch", { clientId: $("clientId").value, clientSecret: $("clientSecret").value }); $("clientSecret").value = ""; renderAdmin(); toast("Chaves salvas. Agora clique em Conectar com a Twitch."); }
+  catch (e) { toast(e.message); }
+};
+$("desconectar").onclick = async () => { admin = await post("twitch/desconectar"); renderAdmin(); toast("Desconectado"); };
+$("criarRecompensas").onclick = async e => {
+  e.target.disabled = true;
+  try {
+    const d = await post("recompensas", { custo: $("custo").value, custoEntre: $("custoEntre").value });
+    admin = d; renderAdmin();
+    const r = $("relatorio"); r.replaceChildren();
+    d.relatorio.forEach(x => r.append(el("div", x.ok ? "ok" : "falha", `${x.ok ? "✔" : "✖"} ${x.jogo}: ${x.acao}`)));
+  } catch (err) { toast(err.message); }
+  e.target.disabled = false;
+};
+$("simular1").onclick = () => post("simular", { quantidade: 1 });
+$("simular12").onclick = () => post("simular", { quantidade: 12 });
+$("zerarTudo").onclick = () => confirm("Zerar os votos de todos os jogos?") && post("zerar");
+$("simularEntre").onclick = () => post("simular", { quantidade: 12, lista: "entre" });
+$("zerarEntre").onclick = () => confirm("Zerar os votos de todos os jogos entre lives?") && post("zerar", { lista: "entre" });
+$("salvarNotion").onclick = async e => {
+  e.target.disabled = true;
+  try { admin = await post("notion", { token: $("notionToken").value, databaseId: $("databaseId").value }); $("notionToken").value = ""; renderAdmin(); toast(admin.notion.erro ? "Notion: " + admin.notion.erro : "Notion conectado"); }
+  catch (err) { toast(err.message); }
+  e.target.disabled = false;
+};
+$("salvarSupabase").onclick = async e => {
+  e.target.disabled = true;
+  try {
+    admin = await post("supabase", { url: $("sbUrl").value, publica: $("sbPublica").value, secreta: $("sbSecreta").value });
+    $("sbPublica").value = ""; $("sbSecreta").value = ""; renderAdmin();
+    toast(admin.supabase.erro ? "Supabase: " + admin.supabase.erro : "Placar enviado para o site público");
+  } catch (err) { toast(err.message); }
+  e.target.disabled = false;
+};
+$("sincronizar").onclick = async () => { admin = await post("notion/sincronizar"); renderAdmin(); toast("Lista atualizada"); };
+
+const q = new URLSearchParams(location.search);
+if (q.get("twitch") === "ok") toast("Twitch conectada");
+if (q.get("erro")) toast(q.get("erro") === "faltam-chaves" ? "Salve o Client ID e o Client Secret antes de conectar." : q.get("erro"));
+if (q.toString()) history.replaceState(null, "", "/admin");
+
+conectar({ aoEstado: s => { estado = s; renderVotos(); } });
+carregarAdmin();
+setInterval(carregarAdmin, 5000);
+</script>
+</body>
+</html>
