@@ -96,8 +96,7 @@ function renderGaleria() {
     const card = el("article", "card-jogo");
     const corpo = el("div", "corpo");
     const props = el("div", "props");
-    [pilula(j.status, CORES_STATUS[j.status]), pilula(j.tipo), pilula(j.adquirido === "Sim" ? "Já tem" : j.adquirido === "Família Steam" ? "Família Steam" : j.adquirido === "Não" ? "Não tem" : null)]
-      .filter(Boolean).forEach(p => props.append(p));
+    // no card, só os gêneros da Steam (status, tipo e "já tem" são coisas internas do Ric)
     (j.generos || []).slice(0, 2).forEach(g => props.append(pilula(g, "roxo")));
     const rodape = el("div", "rodape");
     const votos = el("span");
