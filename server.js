@@ -61,7 +61,7 @@ let steamInfo = {}; // id da página -> dados da Steam
 function jogoPublico(j, lista = "principal") {
   const s = steamInfo[j.id] || {};
   return {
-    id: j.id, nome: j.nome, opcao: j.opcao, entreLives: !!j.entreLives,
+    id: j.id, nome: j.nome, opcao: j.opcao, entreLives: !!j.entreLives, frequente: !!j.frequente,
     status: j.status, tipo: j.tipo, plataforma: j.plataforma, adquirido: j.adquirido,
     frequencia: j.frequencia, preco: j.preco, promo: j.promo,
     votos: votacao[LISTAS[lista].votos][j.id] || 0,
@@ -89,6 +89,8 @@ function estadoPublico() {
     custo: conta.twitch?.custo || null,
     // votação entre lives: as telas abertas com ?lista=entre usam este bloco
     entre: { opcoes: entre, total: entre.reduce((a, j) => a + j.votos, 0), ultimos: votacao.ultimosEntre, custo: LISTAS.entre.custo() },
+    // Frequentes (Frequência "Fixo"): só para mostrar, sem votação
+    frequentes: todos.filter(j => j.frequente).map(({ id, nome, capa, generos }) => ({ id, nome, capa, generos })),
     aoVivo: twitch.status().conectado
   };
 }

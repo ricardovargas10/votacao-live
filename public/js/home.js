@@ -131,7 +131,7 @@ function renderSinopses() {
 const jaTem = j => j.adquirido === "Sim" || j.adquirido === "Família Steam";
 const precoDe = j => (jaTem(j) ? null : j.promo ?? j.preco ?? j.precoSteam ?? null);
 const anoDe = j => Number((j.lancamento || "").match(/\d{4}/)?.[0]) || null;
-const votacaoDe = j => [j.opcao && "Série", j.entreLives && "Jogo"].filter(Boolean).join(" e ") || null;
+const votacaoDe = j => [j.opcao && "Série", j.entreLives && "Jogo curto", j.frequente && "Frequente"].filter(Boolean).join(" e ") || null;
 
 const COLUNAS = [
   { chave: "nome", titulo: "Jogo", valor: j => j.nome },
@@ -144,7 +144,8 @@ const COLUNAS = [
 const FILTROS = {
   "Todos": () => true,
   "Séries na votação": j => j.opcao,
-  "Jogos na votação": j => j.entreLives,
+  "Jogos curtos na votação": j => j.entreLives,
+  "Frequentes": j => j.frequente,
   "Já tem": jaTem,
   "Não tem": j => !jaTem(j)
 };
@@ -213,7 +214,7 @@ function renderTudo() {
   const selo = $("selo");
   if (selo) { selo.classList.toggle("aovivo", !!estado.aoVivo); $("seloTxt").textContent = estado.aoVivo ? "Contando ao vivo" : "Votação aberta"; }
   // galeria, sinopses e tabela só redesenham quando algo muda nelas
-  const nova = JSON.stringify([estado.opcoes.map(j => [j.id, j.capa, j.sinopse, j.votos, j.metaVotos]), estado.biblioteca.map(j => [j.id, j.nome, j.opcao, j.entreLives, j.adquirido, j.capa, j.preco, j.promo, j.precoSteam, j.generos, j.lancamento])]);
+  const nova = JSON.stringify([estado.opcoes.map(j => [j.id, j.capa, j.sinopse, j.votos, j.metaVotos]), estado.biblioteca.map(j => [j.id, j.nome, j.opcao, j.entreLives, j.frequente, j.adquirido, j.capa, j.preco, j.promo, j.precoSteam, j.generos, j.lancamento])]);
   if (nova !== assinatura) {
     assinatura = nova;
     if ($("cards")) renderGaleria();

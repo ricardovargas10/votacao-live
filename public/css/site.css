@@ -221,3 +221,13 @@ s.antes{display:block;font-size:12px;color:var(--muted)}
 }
 .botao.secundario{background:#fff;color:var(--text);border:1px solid var(--line-2)}
 .botao.secundario:hover{background:var(--surface)}
+/* três caixas no início: séries, jogos curtos e frequentes */
+.caixas{grid-template-columns:repeat(3,minmax(0,1fr))}
+.caixa-fixa:hover{transform:none;box-shadow:var(--sombra)}
+.lista-frequentes{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
+.lista-frequentes li{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600}
+.lista-frequentes .capa{flex:none;width:56px;height:26px;border-radius:4px}
+.lista-frequentes .capa-reserva{font-size:12px}
+.lista-frequentes .vazio{color:var(--muted);font-weight:400}
+@media (max-width:1000px){.caixas{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.caixas{grid-template-columns:1fr}}
