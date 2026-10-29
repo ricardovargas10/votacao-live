@@ -46,6 +46,15 @@
   .relatorio .falha{color:#d23c3c}
   .copiar{display:grid;grid-template-columns:110px minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
   .copiar:last-child{border-bottom:0}
+  /* modo live: dados sensíveis aparecem como bolinhas; o olho mostra por 10 segundos */
+  .campo.sensivel{-webkit-text-security:disc}
+  .campo.sensivel.visivel{-webkit-text-security:none}
+  .com-olho{display:flex;gap:6px;align-items:center}
+  .com-olho .campo{flex:1}
+  .olho{flex:none;width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:var(--raio-sm);background:#fff;cursor:pointer;font-size:16px;line-height:1}
+  .olho:hover{background:var(--surface)}
+  .olho.mini{width:30px;height:30px;font-size:14px}
+  .oculto-txt{letter-spacing:2px}
   .copiar code{font-size:13px;background:var(--surface);padding:6px 10px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .steam-linha{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 120px auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
   .steam-linha:last-child{border-bottom:0}
@@ -70,10 +79,10 @@
       <p>Conta do canal que recebe os resgates de ChicoPoints.</p>
       <div class="estado" id="twEstado"><span class="luz"></span><span id="twTxt">Carregando…</span></div>
       <label for="clientId">Client ID</label>
-      <input class="campo" id="clientId" autocomplete="off">
+      <input class="campo sensivel" id="clientId" autocomplete="off">
       <label for="clientSecret">Client Secret</label>
-      <input class="campo" id="clientSecret" type="password" autocomplete="off">
-      <div class="dica">No app da Twitch, a OAuth Redirect URL precisa ser exatamente <b id="redirect"></b></div>
+      <input class="campo sensivel" id="clientSecret" type="password" autocomplete="off">
+      <div class="dica">No app da Twitch, a OAuth Redirect URL precisa ser exatamente <b id="redirect" class="oculto-txt">••••••••••••</b> <button class="olho mini" id="verRedirect" title="Mostrar por 10 segundos">👁</button></div>
       <div class="acoes">
         <button class="btn" id="salvarTwitch">Salvar chaves</button>
         <a class="btn twitch" href="/auth/twitch">Conectar com a Twitch</a>
@@ -123,9 +132,9 @@
       <p>A base "Ideias de jogos" alimenta o site. Mudanças no Notion aparecem em até 2 minutos.</p>
       <div class="estado" id="ntEstado"><span class="luz"></span><span id="ntTxt">Carregando…</span></div>
       <label for="notionToken">Token da integração</label>
-      <input class="campo" id="notionToken" type="password" autocomplete="off">
+      <input class="campo sensivel" id="notionToken" type="password" autocomplete="off">
       <label for="databaseId">ID da base</label>
-      <input class="campo" id="databaseId" autocomplete="off">
+      <input class="campo sensivel" id="databaseId" autocomplete="off">
       <div class="acoes">
         <button class="btn primario" id="salvarNotion">Salvar e sincronizar</button>
         <button class="btn" id="sincronizar">Sincronizar agora</button>
@@ -137,11 +146,11 @@
       <p>Manda o placar para o Supabase, e o site na Vercel mostra ao vivo para quem estiver fora do seu PC. No Supabase: Project Settings > API Keys (chaves) e Data API (URL).</p>
       <div class="estado" id="sbEstado"><span class="luz"></span><span id="sbTxt">Carregando…</span></div>
       <label for="sbUrl">Project URL</label>
-      <input class="campo" id="sbUrl" autocomplete="off" placeholder="https://xxxx.supabase.co">
+      <input class="campo sensivel" id="sbUrl" autocomplete="off" placeholder="https://xxxx.supabase.co">
       <label for="sbPublica">Chave pública (Publishable key, começa com sb_publishable_)</label>
-      <input class="campo" id="sbPublica" autocomplete="off">
+      <input class="campo sensivel" id="sbPublica" autocomplete="off">
       <label for="sbSecreta">Chave secreta (Secret key, começa com sb_secret_)</label>
-      <input class="campo" id="sbSecreta" type="password" autocomplete="off">
+      <input class="campo sensivel" id="sbSecreta" type="password" autocomplete="off">
       <div class="dica">A chave secreta fica só no seu PC. A pública vai para o site, como o Supabase manda.</div>
       <div class="acoes"><button class="btn primario" id="salvarSupabase">Salvar e enviar placar</button></div>
     </section>
@@ -165,6 +174,23 @@
 import { conectar, el } from "/js/ao-vivo.js";
 
 const $ = id => document.getElementById(id);
+
+/* ---------- modo live: nada sensível aparece na tela sem clicar no olho ---------- */
+const BOLINHAS = "••••••••••••••••";
+const visiveis = new Set(); // o que está aparecendo agora (volta a esconder sozinho em 10 s)
+function mostrarPor10s(chave, aoMudar) {
+  visiveis.add(chave); aoMudar();
+  clearTimeout(mostrarPor10s[chave]);
+  mostrarPor10s[chave] = setTimeout(() => { visiveis.delete(chave); aoMudar(); }, 10000);
+}
+document.querySelectorAll(".campo.sensivel").forEach(campo => {
+  const caixa = el("div", "com-olho");
+  campo.replaceWith(caixa);
+  const olho = el("button", "olho", "👁"); olho.type = "button"; olho.title = "Mostrar por 10 segundos";
+  caixa.append(campo, olho);
+  const pintar = () => campo.classList.toggle("visivel", visiveis.has(campo.id));
+  olho.onclick = () => mostrarPor10s(campo.id, pintar);
+});
 let admin = null, estado = null;
 
 function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("on"), 2600); }
@@ -190,7 +216,8 @@ function renderAdmin() {
   estadoBox("twEstado", "twTxt", tw.conectado ? "ok" : (tw.login ? "erro" : ""), tw.conectado ? `Conectado como ${tw.login} · ${tw.mensagem}` : tw.mensagem);
   if (document.activeElement !== $("clientId")) $("clientId").value = tw.clientId;
   $("clientSecret").placeholder = tw.temSecret ? "Salvo (cole outro para trocar)" : "";
-  $("redirect").textContent = tw.redirect;
+  $("redirect").textContent = visiveis.has("redirect") ? tw.redirect : BOLINHAS;
+  $("verRedirect").onclick = () => mostrarPor10s("redirect", renderAdmin);
   if (tw.custo && !$("custo").value) $("custo").value = tw.custo;
   if (tw.custoEntre && !$("custoEntre").value) $("custoEntre").value = tw.custoEntre;
   if (tw.metaSeries && !$("metaSeries").value) $("metaSeries").value = tw.metaSeries;
@@ -225,12 +252,16 @@ function renderAdmin() {
   const l = $("links"); l.replaceChildren();
   [["Overlay séries", admin.links.overlay, "Largura 470 · Altura 400"], ["Telão séries", admin.links.telao, "Largura 1920 · Altura 1080"],
    ["Overlay jogos curtos", admin.links.overlayEntre, "Largura 470 · Altura 400"], ["Telão jogos curtos", admin.links.telaoEntre, "Largura 1920 · Altura 1080"],
+   ["Telão frequentes", admin.links.telao + "?lista=frequentes", "Largura 1920 · Altura 1080"],
    ["Site", admin.links.site, "Para abrir no navegador"]].forEach(([nome, url, dica]) => {
     const linha = el("div", "copiar");
     const b = el("button", "btn mini", "Copiar");
     b.onclick = () => { navigator.clipboard.writeText(url); toast(`${nome} copiado`); };
-    const info = el("div"); info.append(el("code", null, url), el("div", "dica", dica));
-    linha.append(el("b", null, nome), info, b);
+    const olho = el("button", "olho mini", "👁"); olho.title = "Mostrar por 10 segundos";
+    olho.onclick = () => mostrarPor10s(nome, renderAdmin);
+    const grupo = el("div", "grupo"); grupo.append(olho, b);
+    const info = el("div"); info.append(el("code", visiveis.has(nome) ? null : "oculto-txt", visiveis.has(nome) ? url : BOLINHAS), el("div", "dica", dica));
+    linha.append(el("b", null, nome), info, grupo);
     l.append(linha);
   });
 }
