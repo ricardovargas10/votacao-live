@@ -268,3 +268,8 @@ footer.rodape .container{display:block}
 .menu-telao-opcoes b{font-size:14px;font-weight:600;color:var(--text)}
 .menu-telao-opcoes span{font-size:12px;color:var(--muted)}
 @media (max-width:640px){.menu-telao-opcoes{position:fixed;top:auto;left:16px;right:16px;transform:none;margin-top:6px}}
+
+/* meta batida: a barra e o fundo dela ficam roxos */
+.linha-rank.batida .trilho{background:var(--accent)}
+.linha-rank.batida .trilho i{background:var(--accent)}
+.linha-rank.batida .pct{color:var(--accent-text);font-weight:600}

@@ -47,6 +47,27 @@ function metaDoJogo(j, lista) {
   const v = L.metaFixaVotos();
   return { metaPontos: v * L.custo(), metaVotos: v };
 }
+// Fila de quem bateu a meta, por votação: a ordem de chegada não muda mais, mesmo que outro jogo
+// passe em votos depois. Sai da fila só quem voltar a ficar abaixo da meta (zerar, ajuste manual, meta maior).
+votacao.batidas = votacao.batidas || {};
+const filaDe = lista => (votacao.batidas[lista] = votacao.batidas[lista] || []);
+function posicaoNaFila(id, lista) {
+  const i = filaDe(lista).indexOf(id);
+  return i < 0 ? null : i;
+}
+// devolve true se a fila mudou (aí as recompensas precisam ser revistas)
+function atualizarFilas() {
+  let mudou = false;
+  for (const [lista, L] of Object.entries(LISTAS)) {
+    const meta = L.metaFixaVotos(), votos = votacao[L.votos];
+    const fila = filaDe(lista).filter(id => (votos[id] || 0) >= meta);
+    const novos = Object.keys(votos).filter(id => votos[id] >= meta && !fila.includes(id)).sort((a, b) => votos[b] - votos[a]);
+    if (novos.length || fila.length !== filaDe(lista).length) mudou = true;
+    votacao.batidas[lista] = [...fila, ...novos];
+  }
+  return mudou;
+}
+
 // cada voto vai para o disco na hora: fechar a janela no X não perde nada
 const salvarVotos = () => gravarAgora("votos.json", votacao);
 
@@ -65,6 +86,7 @@ function jogoPublico(j, lista = "principal") {
     frequencia: j.frequencia, preco: j.preco, promo: j.promo,
     votos: votacao[LISTAS[lista].votos][j.id] || 0,
     ...metaDoJogo(j, lista),
+    ordemMeta: posicaoNaFila(j.id, lista),
     precoSteam: steamInfo[j.id]?.precoCheio ?? null,
     capa: j.capaNotion || s.capa || null,
     capaVertical: s.capaVertical || null,
@@ -125,7 +147,9 @@ function registrarVoto(jogoId, quem, lista = "principal") {
   const votos = votacao[L.votos];
   votos[j.id] = (votos[j.id] || 0) + 1;
   votacao[L.ultimos] = [{ quem, jogoId: j.id, jogo: j.nome, t: Date.now() }, ...votacao[L.ultimos]].slice(0, 12);
+  const bateuMeta = atualizarFilas();
   salvarVotos();
+  if (bateuMeta) atualizarRecompensasSozinho(); // desliga a recompensa de quem bateu a meta
   const total = jogos.filter(x => x[L.campo]).reduce((a, x) => a + (votos[x.id] || 0), 0);
   enviar("voto", { lista, jogoId: j.id, jogo: j.nome, quem, votos: votos[j.id], total, t: Date.now() });
   avisarEstado();
@@ -188,7 +212,8 @@ const chaveOpcoes = lista => lista.filter(j => j.opcao || j.entreLives).map(j =>
 
 // as recompensas que precisam existir na Twitch agora, das duas votações
 function itensRecompensa() {
-  return Object.values(LISTAS).flatMap(L => jogos.filter(j => j[L.campo]).map(j => ({
+  // quem bateu a meta não tem mais recompensa: a vaga já está garantida
+  return Object.entries(LISTAS).flatMap(([lista, L]) => jogos.filter(j => j[L.campo] && posicaoNaFila(j.id, lista) === null).map(j => ({
     chave: L.chave(j.id), titulo: tituloRecompensa(j.nome, L.prefixo), custo: L.custo(), prompt: L.prompt
   })));
 }
@@ -351,6 +376,7 @@ async function rotaAdmin(req, res, url) {
       const metaCurtos = parseInt(corpo.metaCurtos, 10);
       if (metaCurtos >= 1) conta.twitch.metaCurtos = metaCurtos;
       salvarConta();
+      atualizarFilas();
       await atualizandoRecompensas; // não roda junto com a atualização automática
       const relatorio = await twitch.sincronizarRecompensas(itensRecompensa());
       avisarEstado();
@@ -363,12 +389,14 @@ async function rotaAdmin(req, res, url) {
       const atual = votacao[L.votos][j.id] || 0;
       const novo = typeof corpo.valor === "number" ? corpo.valor : atual + (Number(corpo.delta) || 0);
       votacao[L.votos][j.id] = Math.max(0, Math.round(novo) || 0);
+      if (atualizarFilas()) atualizarRecompensasSozinho();
       salvarVotos(); avisarEstado();
       return json(res, 200, estadoPublico());
     }
     if (r === "zerar") {
       if (corpo.id) votacao[L.votos][corpo.id] = 0;
       else { votacao[L.votos] = {}; votacao[L.ultimos] = []; votacao[L.zerado] = Date.now(); }
+      if (atualizarFilas()) atualizarRecompensasSozinho(); // quem saiu da fila volta a ter recompensa
       salvarVotos(); avisarEstado();
       return json(res, 200, estadoPublico());
     }
@@ -465,6 +493,7 @@ servidor.listen(PORTA, "127.0.0.1", async () => {
   console.log(`  Admin:    ${BASE}/admin`);
   console.log("");
   console.log("  Deixe esta janela aberta durante a live.");
+  atualizarFilas();
   abrirAdmin(); // só agora, com o servidor já respondendo (antes o navegador chegava cedo e dava "conexão recusada")
   await sincronizarNotion();
   completarSteam();

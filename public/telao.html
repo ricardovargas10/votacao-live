@@ -141,6 +141,7 @@ function render() {
   const [a, b] = ordem;
   const rot = document.getElementById("liderRotulo"), nome = document.getElementById("liderNome"), info = document.getElementById("liderInfo");
   if (!a || !a.votos) { rot.textContent = "Na frente"; nome.textContent = "Nenhum voto ainda"; info.textContent = "O primeiro voto abre a corrida."; }
+  else if (a.ordemMeta != null) { rot.textContent = "Meta batida"; nome.textContent = a.nome; info.textContent = "É o próximo da fila."; }
   else if (b && a.votos === b.votos) {
     rot.textContent = "Empate";
     const empatados = ordem.filter(j => j.votos === a.votos);

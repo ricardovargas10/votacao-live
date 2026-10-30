@@ -72,8 +72,11 @@ export function porcentagemMeta(j) {
 }
 
 
+// Quem bateu a meta vem primeiro, na ordem em que bateu (essa posição não muda mais);
+// o resto vem por votos.
 export function ordenar(opcoes) {
-  return [...opcoes].sort((a, b) => b.votos - a.votos || a.nome.localeCompare(b.nome));
+  const fila = j => j.ordemMeta ?? Infinity;
+  return [...opcoes].sort((a, b) => (fila(a) === fila(b) ? 0 : fila(a) - fila(b)) || b.votos - a.votos || a.nome.localeCompare(b.nome));
 }
 
 export function el(tag, cls, texto) {

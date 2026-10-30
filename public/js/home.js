@@ -53,6 +53,8 @@ function renderLateral() {
   const capaBox = $("liderCapa");
   if (!a || !a.votos) {
     rot.textContent = "Na frente"; nome.textContent = "Nenhum voto ainda"; info.textContent = "O primeiro voto abre a corrida.";
+  } else if (a.ordemMeta != null) {
+    rot.textContent = "Meta batida"; nome.textContent = a.nome; info.textContent = "É o próximo da fila.";
   } else if (b && a.votos === b.votos) {
     const empatados = ordem.filter(j => j.votos === a.votos);
     rot.textContent = "Empate";
