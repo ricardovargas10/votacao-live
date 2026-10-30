@@ -27,9 +27,9 @@
   .nome{position:relative;flex:1;min-width:0;font-weight:700;font-size:var(--fn,15px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* % da meta: a barra enche até a meta do jogo (preço na Steam × 100 ChicoPoints) */
   .meta-pct{position:relative;font-weight:700;font-size:var(--fm,12px);color:var(--muted);font-variant-numeric:tabular-nums}
-  /* meta batida: a barra enche de roxo */
-  .jogo.batida .barra,.jogo.lider.batida .barra{background:var(--accent)}
-  .jogo.batida .meta-pct{color:#fff}
+  /* meta batida: o fundo da linha fica roxinho */
+  .jogo.batida{background:rgba(145,70,255,.28)}
+  .jogo.batida .meta-pct{color:var(--win)}
 
   /* número / nome de quem votou */
   .roleta{position:relative;display:inline-flex;justify-content:center;min-width:34px;max-width:170px;height:var(--hr,28px);align-items:center;padding:0 6px;border-radius:7px;font-weight:900;font-size:var(--fr,17px);overflow:hidden;white-space:nowrap;transition:background .2s,max-width .3s}

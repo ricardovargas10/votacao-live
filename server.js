@@ -47,6 +47,13 @@ function metaDoJogo(j, lista) {
   const v = L.metaFixaVotos();
   return { metaPontos: v * L.custo(), metaVotos: v };
 }
+// A meta é o máximo: o placar nunca mostra nem conta mais votos que ela.
+// Se a meta for aumentada no admin, o que estava guardado acima dela volta a aparecer.
+function votosDe(j, lista) {
+  const L = LISTAS[lista];
+  return Math.min(votacao[L.votos][j.id] || 0, L.metaFixaVotos());
+}
+
 // Fila de quem bateu a meta, por votação: a ordem de chegada não muda mais, mesmo que outro jogo
 // passe em votos depois. Sai da fila só quem voltar a ficar abaixo da meta (zerar, ajuste manual, meta maior).
 votacao.batidas = votacao.batidas || {};
@@ -84,7 +91,7 @@ function jogoPublico(j, lista = "principal") {
     id: j.id, nome: j.nome, opcao: j.opcao, entreLives: !!j.entreLives, frequente: !!j.frequente,
     status: j.status, tipo: j.tipo, plataforma: j.plataforma, adquirido: j.adquirido,
     frequencia: j.frequencia, preco: j.preco, promo: j.promo,
-    votos: votacao[LISTAS[lista].votos][j.id] || 0,
+    votos: votosDe(j, lista), // nunca passa da meta
     ...metaDoJogo(j, lista),
     ordemMeta: posicaoNaFila(j.id, lista),
     precoSteam: steamInfo[j.id]?.precoCheio ?? null,
@@ -145,12 +152,13 @@ function registrarVoto(jogoId, quem, lista = "principal") {
   const j = jogos.find(x => x.id === jogoId && x[L.campo]);
   if (!j) return false;
   const votos = votacao[L.votos];
+  if (votosDe(j, lista) >= L.metaFixaVotos()) return false; // já bateu a meta: não soma mais
   votos[j.id] = (votos[j.id] || 0) + 1;
   votacao[L.ultimos] = [{ quem, jogoId: j.id, jogo: j.nome, t: Date.now() }, ...votacao[L.ultimos]].slice(0, 12);
   const bateuMeta = atualizarFilas();
   salvarVotos();
   if (bateuMeta) atualizarRecompensasSozinho(); // desliga a recompensa de quem bateu a meta
-  const total = jogos.filter(x => x[L.campo]).reduce((a, x) => a + (votos[x.id] || 0), 0);
+  const total = jogos.filter(x => x[L.campo]).reduce((a, x) => a + votosDe(x, lista), 0);
   enviar("voto", { lista, jogoId: j.id, jogo: j.nome, quem, votos: votos[j.id], total, t: Date.now() });
   avisarEstado();
   return true;
@@ -386,9 +394,9 @@ async function rotaAdmin(req, res, url) {
     if (r === "votos") {
       const j = jogos.find(x => x.id === corpo.id);
       if (!j) return json(res, 404, { erro: "Jogo não encontrado" });
-      const atual = votacao[L.votos][j.id] || 0;
+      const atual = votosDe(j, lista);
       const novo = typeof corpo.valor === "number" ? corpo.valor : atual + (Number(corpo.delta) || 0);
-      votacao[L.votos][j.id] = Math.max(0, Math.round(novo) || 0);
+      votacao[L.votos][j.id] = Math.min(L.metaFixaVotos(), Math.max(0, Math.round(novo) || 0)); // ajuste manual também para na meta
       if (atualizarFilas()) atualizarRecompensasSozinho();
       salvarVotos(); avisarEstado();
       return json(res, 200, estadoPublico());
