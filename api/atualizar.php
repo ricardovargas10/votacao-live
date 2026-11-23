@@ -14,6 +14,8 @@ if (!is_string($chave) || !hash_equals(CHAVE_HASH, hash('sha256', $chave))) sair
 $raiz = dirname(__DIR__);
 $dados = __DIR__ . '/dados';
 if (!is_dir($dados)) mkdir($dados, 0755, true);
+if (!is_file($dados . '/.htaccess')) file_put_contents($dados . '/.htaccess', "Require all denied
+"); // pasta de dados nunca abre pelo navegador
 $zip = $dados . '/site.zip';
 
 // baixa a branch

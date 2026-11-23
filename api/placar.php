@@ -20,6 +20,8 @@ $novo = json_decode($corpo, true);
 if (!is_array($novo) || !isset($novo['linhas']) || !is_array($novo['linhas'])) { http_response_code(400); echo '{"erro":"pedido inválido"}'; exit; }
 
 if (!is_dir(__DIR__ . '/dados')) mkdir(__DIR__ . '/dados', 0755, true);
+if (!is_file(__DIR__ . '/dados' . '/.htaccess')) file_put_contents(__DIR__ . '/dados' . '/.htaccess', "Require all denied
+"); // pasta de dados nunca abre pelo navegador
 $fp = fopen($arquivo, 'c+');
 flock($fp, LOCK_EX);
 $atual = json_decode(stream_get_contents($fp), true) ?: [];
