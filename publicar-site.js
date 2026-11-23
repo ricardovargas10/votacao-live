@@ -1,6 +1,6 @@
 // Publica o site na Hostinger (lives.temeron.com.br).
 // Junta public/ (sem o admin, que mora em privado/) com hostinger/ (.htaccess e api/) na branch "site"
-// do GitHub, e chama o endereço de deploy da Hostinger, que puxa a branch para a pasta do site.
+// do GitHub, e pede ao site (api/atualizar.php) que baixe a branch. A chave fica em data/hostinger.json.
 // Uso: node publicar-site.js
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -41,11 +41,9 @@ if (!git(["status", "--porcelain"], PASTA)) {
 }
 git(["worktree", "remove", "--force", PASTA]);
 
-// avisa a Hostinger (o endereço de deploy fica em data/hostinger.json, campo "webhook")
+// pede ao site que baixe a branch nova (api/atualizar.php, com a mesma chave do placar)
 const cfg = JSON.parse(fs.readFileSync(path.join(RAIZ, "data", "hostinger.json"), "utf8"));
-if (!cfg.webhook) {
-  console.log("Sem endereço de deploy em data/hostinger.json (campo webhook): faça o deploy pelo hPanel.");
-} else {
-  const r = await fetch(cfg.webhook, { method: "POST" });
-  console.log(r.ok ? "Hostinger avisada: o site atualiza em alguns segundos." : `Hostinger respondeu ${r.status} ao pedido de deploy.`);
-}
+const url = cfg.url.replace(/placar\.php$/, "atualizar.php");
+const r = await fetch(url, { method: "POST", headers: { "X-Chave": cfg.chave } });
+const d = await r.json().catch(() => ({}));
+console.log(r.ok ? `Site atualizado: ${d.arquivos} arquivos (${d.apagados} apagados).` : `O site respondeu ${r.status}: ${d.erro || "erro"}`);
