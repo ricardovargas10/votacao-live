@@ -21,7 +21,7 @@ $zip = $dados . '/site.zip';
 // baixa o commit exato que o PC acabou de publicar (pelo nome da branch o GitHub às vezes entrega uma cópia antiga)
 $pedido = json_decode(file_get_contents('php://input'), true);
 $sha = is_array($pedido) && is_string($pedido['sha'] ?? null) && preg_match('/^[0-9a-f]{40}$/', $pedido['sha']) ? $pedido['sha'] : 'refs/heads/site';
-$ch = curl_init('https://codeload.github.com/ricardovargas10/votacao-live/zip/' . $sha);
+$ch = curl_init('https://codeload.github.com/ricardovargas10/ric_gameplays/zip/' . $sha);
 $fp = fopen($zip, 'w');
 curl_setopt_array($ch, [CURLOPT_FILE => $fp, CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 60, CURLOPT_USERAGENT => 'site-atualizar']);
 $ok = curl_exec($ch);
@@ -35,7 +35,7 @@ if ($z->open($zip) !== true) sair(500, ['erro' => 'zip inválido']);
 $novos = [];
 for ($i = 0; $i < $z->numFiles; $i++) {
   $nome = $z->getNameIndex($i);
-  $rel = substr($nome, strpos($nome, '/') + 1); // tira a pasta "votacao-live-site/"
+  $rel = substr($nome, strpos($nome, '/') + 1); // tira a pasta de cima do zip ("ric_gameplays-<commit>/")
   if ($rel === '' || substr($rel, -1) === '/') continue;
   if (strpos($rel, '..') !== false || strpos($rel, 'api/dados/') === 0) continue;
   $destino = $raiz . '/' . $rel;
