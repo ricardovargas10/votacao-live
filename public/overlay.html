@@ -25,7 +25,7 @@
   .pos{position:relative;width:18px;font-weight:900;font-size:var(--fp,14px);color:var(--muted)}
   .jogo.lider .pos{color:var(--win)}
   .nome{position:relative;flex:1;min-width:0;font-weight:700;font-size:var(--fn,15px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  /* % da meta: a barra enche até a meta do jogo (preço na Steam × 100 ChicoPoints) */
+  /* % da meta: a barra enche até a meta do jogo (meta em votos, definida no admin) */
   .meta-pct{position:relative;font-weight:700;font-size:var(--fm,12px);color:var(--muted);font-variant-numeric:tabular-nums}
   /* meta batida: o fundo da linha fica roxinho */
   .jogo.batida{background:rgba(145,70,255,.28)}
@@ -41,7 +41,7 @@
 </head>
 <body>
 <div id="placar">
-  <div class="topo"><div class="titulo" id="titulo">Próximo jogo</div><div class="sub">vote com ChicoPoints</div></div>
+  <div class="topo"><div class="titulo" id="titulo">Próximo jogo</div><div class="sub">vote com RicPoints</div></div>
   <div id="lista"></div>
 </div>
 <script type="module">

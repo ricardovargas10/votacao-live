@@ -89,6 +89,22 @@ function renderLateral() {
   $("total").textContent = estado.total;
 }
 
+/* ---------- jogando agora (página de séries) ---------- */
+let assinaturaJogando = "";
+function renderJogando() {
+  const box = $("jogandoAgora");
+  const lista = estado.jogandoAgora || [];
+  const nova = JSON.stringify(lista.map(j => [j.id, j.capa]));
+  if (nova === assinaturaJogando) return;
+  assinaturaJogando = nova;
+  box.hidden = !lista.length;
+  $("jogandoLista").replaceChildren(...lista.map(j => {
+    const item = el("div", "jogando-item");
+    item.append(capa(j.capa, j.nome), el("b", null, j.nome));
+    return item;
+  }));
+}
+
 /* ---------- galeria ---------- */
 function pilula(texto, cor) { return texto ? el("span", "pilula " + (cor || ""), texto) : null; }
 
@@ -102,9 +118,9 @@ function renderGaleria() {
     // no card, só os gêneros da Steam (status, tipo e "já tem" são coisas internas do Ric)
     (j.generos || []).slice(0, 2).forEach(g => props.append(pilula(g, "roxo")));
     const rodape = el("div", "rodape");
-    if (LISTA === "frequentes") {
-      // Frequentes não têm votação: o rodapé só diz que o jogo aparece sempre
-      rodape.append(el("span", null, "Sempre no canal"));
+    if (LISTA === "frequentes" || LISTA === "entre") {
+      // Frequentes e jogos curtos não têm votação: o rodapé só diz quando o jogo aparece
+      rodape.append(el("span", null, LISTA === "frequentes" ? "Sempre no canal" : "Entre lives"));
     } else {
       const votos = el("span");
       votos.append(el("b", null, j.votos), document.createTextNode(` de ${j.metaVotos} votos · ${porcentagemMeta(j)}% da meta`));
@@ -208,6 +224,7 @@ const temRanking = !!$("ranking"), temBiblioteca = !!$("linhas");
 let assinatura = "";
 function renderTudo() {
   if (temRanking) { renderRanking(); renderLateral(); }
+  if ($("jogandoAgora")) renderJogando();
   const selo = $("selo");
   if (selo) { selo.classList.toggle("aovivo", !!estado.aoVivo); $("seloTxt").textContent = estado.aoVivo ? "Contando ao vivo" : "Votação aberta"; }
   // galeria, sinopses e tabela só redesenham quando algo muda nelas

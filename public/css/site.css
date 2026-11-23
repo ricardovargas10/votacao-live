@@ -244,7 +244,7 @@ footer.rodape .container{display:block}
 .rodape-marca img{width:48px;height:48px;border-radius:50%;flex:none}
 .rodape-marca .display{font-size:36px}
 .rodape-chamada{color:var(--text-2);font-size:15px;font-weight:500}
-.rodape-colunas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px;padding:40px 0;border-top:1px solid var(--line-2)}
+.rodape-colunas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:40px;padding:40px 0;border-top:1px solid var(--line-2)}
 .rodape-col .eyebrow{margin-bottom:14px}
 .rodape-col ul{list-style:none;display:flex;flex-direction:column;gap:4px}
 .rodape-link span{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -271,3 +271,10 @@ footer.rodape .container{display:block}
 
 /* meta batida: o fundo cinzinha da linha vira roxinho */
 .linha-rank.batida,.linha-rank.lider.batida{background:var(--accent-soft)}
+
+/* série em andamento, na página de séries */
+.jogando-agora{margin-top:40px}
+.jogando-agora .eyebrow{margin-bottom:12px}
+.jogando-lista{display:flex;flex-wrap:wrap;gap:12px}
+.jogando-item{display:flex;align-items:center;gap:12px;padding:8px 16px 8px 8px;border:1px solid var(--line);border-radius:var(--raio);background:var(--bg);box-shadow:var(--sombra);font-size:15px}
+.jogando-item .capa{width:96px;height:54px;border-radius:6px;flex:none}

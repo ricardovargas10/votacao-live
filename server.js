@@ -37,7 +37,7 @@ votacao.ultimosEntre = votacao.ultimosEntre || [];
 const LISTAS = {
   // cada lista tem uma meta só em votos, igual para todos os jogos dela (ajustável no admin)
   principal: { campo: "opcao", votos: "votos", ultimos: "ultimos", zerado: "zeradoEm", prefixo: PREFIXO, prefixosAntigos: ["Voto: "], chave: id => id, custo: () => conta.twitch.custo || 250, metaFixaVotos: () => conta.twitch.metaSeries || 40, prompt: "Seu voto soma pontos para a próxima série." },
-  entre: { campo: "entreLives", votos: "votosEntre", ultimos: "ultimosEntre", zerado: "zeradoEmEntre", prefixo: PREFIXO_ENTRE, prefixosAntigos: ["Entre lives: "], chave: id => "entre:" + id, custo: () => conta.twitch.custoEntre || 100, metaFixaVotos: () => conta.twitch.metaCurtos || 20, prompt: "Seu voto soma pontos para o próximo jogo entre lives." }
+  entre: { campo: "entreLives", votos: "votosEntre", ultimos: "ultimosEntre", zerado: "zeradoEmEntre", prefixo: PREFIXO_ENTRE, prefixosAntigos: ["Entre lives: "], chave: id => "entre:" + id, custo: () => conta.twitch.custoEntre || 100, semVotacao: true, metaFixaVotos: () => conta.twitch.metaCurtos || 20, prompt: "Seu voto soma pontos para o próximo jogo entre lives." }
 };
 const nomeLista = l => (LISTAS[l] ? l : "principal");
 
@@ -120,6 +120,8 @@ function estadoPublico() {
     entre: { opcoes: entre, total: entre.reduce((a, j) => a + j.votos, 0), ultimos: votacao.ultimosEntre, custo: LISTAS.entre.custo() },
     // Frequentes (Frequência "Fixo"): só para mostrar, sem votação
     frequentes: todos.filter(j => j.frequente),
+    // série em andamento: Status "Jogando" no Notion, tirando frequentes e jogos curtos
+    jogandoAgora: todos.filter(j => j.status === "Jogando" && !j.frequente && !j.entreLives),
     aoVivo: twitch.status().conectado
   };
 }
@@ -220,8 +222,9 @@ const chaveOpcoes = lista => lista.filter(j => j.opcao || j.entreLives).map(j =>
 
 // as recompensas que precisam existir na Twitch agora, das duas votações
 function itensRecompensa() {
-  // quem bateu a meta não tem mais recompensa: a vaga já está garantida
-  return Object.entries(LISTAS).flatMap(([lista, L]) => jogos.filter(j => j[L.campo] && posicaoNaFila(j.id, lista) === null).map(j => ({
+  // quem bateu a meta não tem mais recompensa: a vaga já está garantida;
+  // jogos curtos não têm votação (o Ric joga quando quiser), então nunca têm recompensa
+  return Object.entries(LISTAS).filter(([, L]) => !L.semVotacao).flatMap(([lista, L]) => jogos.filter(j => j[L.campo] && posicaoNaFila(j.id, lista) === null).map(j => ({
     chave: L.chave(j.id), titulo: tituloRecompensa(j.nome, L.prefixo), custo: L.custo(), prompt: L.prompt
   })));
 }

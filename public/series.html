@@ -21,7 +21,6 @@
       <li><a href="/biblioteca">Biblioteca</a></li>
       <li class="menu-telao"><details><summary>Telão</summary><div class="menu-telao-opcoes">
         <a href="/telao"><b>Séries</b><span>votação dos jogos longos</span></a>
-        <a href="/telao?lista=entre"><b>Jogos curtos</b><span>votação entre lives</span></a>
         <a href="/telao?lista=frequentes"><b>Frequentes</b><span>os jogos de sempre</span></a>
       </div></details></li>
     </ul>
@@ -34,8 +33,14 @@
     <div class="container">
       <div class="eyebrow">Séries · jogos longos</div>
       <h1 class="display">Qual a próxima série?</h1>
-      <p class="lead">Resgate <span class="chip-voto">Série: nome da série</span> com ChicoPoints na Twitch. Toda série tem a mesma meta de votos: a primeira a bater a meta entra na fila. O placar continua de uma live para a outra.</p>
+      <p class="lead">Resgate <span class="chip-voto">Série: nome da série</span> com RicPoints na Twitch. Toda série tem a mesma meta de votos: a primeira a bater a meta entra na fila. O placar continua de uma live para a outra.</p>
       <div class="botoes"><a class="botao" href="/telao">Ver no telão das séries</a></div>
+
+      <!-- série que o Ric está jogando agora (Status "Jogando" no Notion) -->
+      <div class="jogando-agora" id="jogandoAgora" hidden>
+        <div class="eyebrow">Jogando agora</div>
+        <div class="jogando-lista" id="jogandoLista"></div>
+      </div>
 
       <div class="votacao-grid">
         <ol class="ranking" id="ranking" aria-label="Ranking das séries"></ol>

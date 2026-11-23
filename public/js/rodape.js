@@ -1,7 +1,7 @@
-// Rodapé igual em todas as páginas: as lives em destaque (cards grandes), depois redes sociais e canais.
+// Rodapé igual em todas as páginas: lives, redes sociais, canais do YouTube e comunidade.
+// Live todos os dias às 19h na Twitch e no YouTube (a Kick saiu).
 const LIVE = [
   { nome: "Twitch", usuario: "ric_gameplays", url: "https://twitch.tv/ric_gameplays", cor: "#9146ff" },
-  { nome: "Kick", usuario: "ric-gameplays", url: "https://kick.com/ric-gameplays", cor: "#53fc18" },
   { nome: "YouTube", usuario: "@ric_lives", url: "https://youtube.com/@ric_lives", cor: "#ff0033" }
 ];
 const GRUPOS = [
@@ -12,7 +12,12 @@ const GRUPOS = [
   ] },
   { titulo: "Canais do YouTube", links: [
     { nome: "Gameplays", usuario: "@ric_gameplays", url: "https://youtube.com/@ric_gameplays" },
-    { nome: "Cortes", usuario: "@ric_cortes", url: "https://youtube.com/@ric_cortes" }
+    { nome: "Vlogs", usuario: "@o_ricardocarvalho", url: "https://youtube.com/@o_ricardocarvalho" }
+  ] },
+  { titulo: "Comunidade", links: [
+    { nome: "Discord", usuario: "Entre para a nossa comunidade", url: "https://discord.gg/4jtUT4HGaC" },
+    { nome: "LivePix", usuario: "Apoie o canal", url: "https://livepix.gg/ricgameplays" },
+    { nome: "Spotify", usuario: "Playlist dos inscritos", url: "https://open.spotify.com/playlist/2mQninpIxtRe11WPOM6ceH" }
   ] }
 ];
 
@@ -35,7 +40,7 @@ document.getElementById("rodape").innerHTML = `
       </div>
       ${GRUPOS.map(g => `<div class="rodape-col"><div class="eyebrow">${g.titulo}</div><ul>${g.links.map(l => `<li>${link(l.url, `<b>${l.nome}</b><span>${l.usuario}</span>`, "rodape-link")}</li>`).join("")}</ul></div>`).join("")}
     </div>
-    <div class="rodape-fim">© ${new Date().getFullYear()} Ric Gameplays · votação com ChicoPoints</div>
+    <div class="rodape-fim">© ${new Date().getFullYear()} Ric Gameplays · votação com RicPoints</div>
   </div>`;
 
 // menu Telão: fecha ao clicar fora dele
