@@ -39,11 +39,12 @@ if (!git(["status", "--porcelain"], PASTA)) {
   git(["push", "--quiet", "origin", "site"], PASTA);
   console.log("Branch site atualizada no GitHub.");
 }
+const sha = git(["rev-parse", "HEAD"], PASTA);
 git(["worktree", "remove", "--force", PASTA]);
 
 // pede ao site que baixe a branch nova (api/atualizar.php, com a mesma chave do placar)
 const cfg = JSON.parse(fs.readFileSync(path.join(RAIZ, "data", "hostinger.json"), "utf8"));
 const url = cfg.url.replace(/placar\.php$/, "atualizar.php");
-const r = await fetch(url, { method: "POST", headers: { "X-Chave": cfg.chave } });
+const r = await fetch(url, { method: "POST", headers: { "X-Chave": cfg.chave, "Content-Type": "application/json" }, body: JSON.stringify({ sha }) });
 const d = await r.json().catch(() => ({}));
-console.log(r.ok ? `Site atualizado: ${d.arquivos} arquivos (${d.apagados} apagados).` : `O site respondeu ${r.status}: ${d.erro || "erro"}`);
+console.log(r.ok ? `Site atualizado (versão ${d.versao}): ${d.arquivos} arquivos (${d.apagados} apagados).` : `O site respondeu ${r.status}: ${d.erro || "erro"}`);
