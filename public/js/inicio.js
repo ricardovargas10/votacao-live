@@ -9,7 +9,7 @@ function caixa(capaId, infoId, bloco, vazio) {
   const info = $(infoId);
   if (!ordem.length) info.textContent = vazio;
   else if (!a.votos) info.textContent = `${ordem.length} na votação · nenhum voto ainda`;
-  else info.textContent = `Na frente: ${a.nome} · ${porcentagemMeta(a)}% da meta · ${bloco.total} votos no total`;
+  else info.textContent = `${bloco.total} votos no total`; // quem está na frente já aparece na lista
   // capa de quem está na frente; sem votos, a do primeiro que tiver capa
   const box = $(capaId);
   const c = a && a.votos ? a : ordem.find(j => j.capa) || a;
@@ -19,6 +19,23 @@ function caixa(capaId, infoId, bloco, vazio) {
     nova.id = capaId; nova.dataset.chave = chave;
     box.replaceWith(nova);
   }
+}
+
+// Séries: a lista da votação na ordem do placar, com o % da meta de cada uma
+let assinaturaSeries = "";
+function listaSeries(opcoes = []) {
+  const ordem = ordenar(opcoes);
+  const assinatura = JSON.stringify(ordem.map(j => [j.id, j.capa, porcentagemMeta(j)]));
+  if (assinatura === assinaturaSeries) return;
+  assinaturaSeries = assinatura;
+  const box = $("listaSeries");
+  box.replaceChildren();
+  if (!ordem.length) box.append(el("li", "vazio", "Nenhuma série na votação agora."));
+  ordem.forEach(j => {
+    const li = el("li");
+    li.append(capa(j.capa, j.nome), el("span", null, j.nome), el("span", "meta-lista", porcentagemMeta(j) + "%"));
+    box.append(li);
+  });
 }
 
 // Frequentes: só a lista, sem votação (a capa é a do primeiro)
@@ -44,6 +61,7 @@ function frequentes(lista = []) {
 conectar({
   aoEstado: s => {
     caixa("capaSeries", "infoSeries", s, "Nenhuma série na votação agora.");
+    listaSeries(s.opcoes);
     // série em andamento aparece antes de quem lidera a votação
     const jogando = (s.jogandoAgora || []).map(j => j.nome).join(", ");
     if (jogando) $("infoSeries").textContent = `Jogando agora: ${jogando} · ` + $("infoSeries").textContent;
