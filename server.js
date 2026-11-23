@@ -4,6 +4,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import crypto from "node:crypto";
 import { ler, gravar, gravarAgora, gravarPendentes } from "./lib/store.js";
 import { buscarJogos } from "./lib/notion.js";
 import { acharAppId, detalhes, limparCache, normalizar } from "./lib/steam.js";
@@ -24,8 +25,13 @@ let conta = ler("conta.json", { notion: { databaseId: DATABASE_PADRAO }, steamMa
 conta.notion = conta.notion || { databaseId: DATABASE_PADRAO };
 conta.steamManual = conta.steamManual || {};
 conta.supabase = conta.supabase || {};
+// site na Hostinger: a chave fica em data/hostinger.json e nunca sai do PC; o site só guarda o resumo (hash) dela
+const hostinger = ler("hostinger.json", {});
+hostinger.url = hostinger.url || "https://lives.temeron.com.br/api/placar.php";
+if (!hostinger.chave) { hostinger.chave = crypto.randomBytes(32).toString("hex"); gravarAgora("hostinger.json", hostinger); }
 const salvarConta = () => gravarAgora("conta.json", conta);
-const publicador = criarPublicador(() => conta.supabase);
+const publicador = criarPublicador(() => conta.supabase); // site antigo (Vercel), até a troca terminar
+const publicadorHostinger = criarPublicador(() => hostinger, "hostinger");
 
 let votacao = ler("votos.json", { votos: {}, ultimos: [], vistos: [] });
 votacao.vistos = votacao.vistos || [];
@@ -143,8 +149,9 @@ let assinaturaBiblioteca = "";
 function publicarEstado(s) {
   const { biblioteca, ...placar } = s;
   publicador.publicar("placar", placar);
+  publicadorHostinger.publicar("placar", placar);
   const assinatura = JSON.stringify(biblioteca);
-  if (assinatura !== assinaturaBiblioteca) { assinaturaBiblioteca = assinatura; publicador.publicar("biblioteca", biblioteca); }
+  if (assinatura !== assinaturaBiblioteca) { assinaturaBiblioteca = assinatura; publicador.publicar("biblioteca", biblioteca); publicadorHostinger.publicar("biblioteca", biblioteca); }
 }
 setInterval(() => clientes.forEach(res => res.write(": ping\n\n")), 25000);
 
@@ -325,6 +332,7 @@ function estadoAdmin() {
   return {
     twitch: { ...twitch.status(), temClientId: !!conta.twitch.clientId, temSecret: !!conta.twitch.clientSecret, clientId: conta.twitch.clientId || "", custo: conta.twitch.custo || null, custoEntre: LISTAS.entre.custo(), metaSeries: LISTAS.principal.metaFixaVotos(), metaCurtos: LISTAS.entre.metaFixaVotos(), redirect: `${BASE}/auth/callback` },
     notion: { configurado: !!conta.notion.token, databaseId: conta.notion.databaseId || DATABASE_PADRAO, ...fonte },
+    hostinger: { url: hostinger.url, chaveHash: crypto.createHash("sha256").update(hostinger.chave).digest("hex"), ...publicadorHostinger.status() },
     supabase: { url: conta.supabase.url || "", temSecreta: !!conta.supabase.secreta, temPublica: !!conta.supabase.publica, ...publicador.status() },
     links: { site: BASE + "/", telao: BASE + "/telao", overlay: BASE + "/overlay", telaoEntre: BASE + "/telao?lista=entre", overlayEntre: BASE + "/overlay?lista=entre" },
     steam: jogos.filter(j => j.opcao || j.entreLives).map(j => ({ id: j.id, nome: j.nome, appId: steamInfo[j.id]?.appId || null, nomeSteam: steamInfo[j.id]?.nomeSteam || null, manual: conta.steamManual[j.id] || null }))

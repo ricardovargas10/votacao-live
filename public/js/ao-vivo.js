@@ -3,7 +3,7 @@
 const PEDIDA = new URLSearchParams(location.search).get("lista") || document.documentElement.dataset.lista;
 export const LISTA = ["entre", "frequentes"].includes(PEDIDA) ? PEDIDA : "principal";
 
-// No PC do Ric as telas falam direto com o servidor; no site público (Vercel) leem a cópia do Supabase
+// No PC do Ric as telas falam direto com o servidor; no site público leem a cópia publicada (Hostinger ou, no antigo, Supabase)
 export const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
 // Frequentes não têm votação: a página usa a lista deles no lugar das opções
 const daLista = s => (LISTA === "entre" && s.entre ? { ...s, ...s.entre } : LISTA === "frequentes" ? { ...s, opcoes: s.frequentes || [] } : s);
@@ -22,10 +22,9 @@ export function conectar({ aoEstado, aoVoto, todas = false }) {
   return fonte;
 }
 
+// Site público. Na Hostinger (lives.temeron.com.br) lê o placar de /api/placar.php a cada 3 s;
+// o site antigo na Vercel continua lendo do Supabase até ser desligado.
 async function conectarPublico({ aoEstado, aoVoto, todas }) {
-  const { SUPABASE_URL, SUPABASE_CHAVE } = await import("/js/config-publico.js");
-  const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm");
-  const sb = createClient(SUPABASE_URL, SUPABASE_CHAVE);
   const linhas = {};
   const ultimoVisto = { principal: 0, entre: 0 };
 
@@ -49,6 +48,28 @@ async function conectarPublico({ aoEstado, aoVoto, todas }) {
     if (linhas.placar) aoEstado?.(daLista({ ...linhas.placar, biblioteca: linhas.biblioteca || [] }));
   }
 
+  if (!location.hostname.endsWith("vercel.app")) {
+    let visto = null, primeira = true;
+    async function buscar() {
+      try {
+        const r = await fetch("/api/placar.php?t=" + Date.now(), { cache: "no-store" });
+        const d = r.ok ? await r.json() : null;
+        if (d?.atualizado && d.atualizado !== visto) {
+          visto = d.atualizado;
+          if (d.biblioteca) aplicar("biblioteca", d.biblioteca, primeira);
+          if (d.placar) aplicar("placar", d.placar, primeira);
+          primeira = false;
+        }
+      } catch {} // sem internet: tenta de novo na próxima volta
+      setTimeout(buscar, document.hidden ? 15000 : 3000);
+    }
+    await buscar();
+    return null;
+  }
+
+  const { SUPABASE_URL, SUPABASE_CHAVE } = await import("/js/config-publico.js");
+  const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm");
+  const sb = createClient(SUPABASE_URL, SUPABASE_CHAVE);
   const { data } = await sb.from("estado").select("id,dados");
   (data || []).sort((a, b) => (a.id === "placar") - (b.id === "placar")).forEach(r => aplicar(r.id, r.dados, true));
   sb.channel("estado")

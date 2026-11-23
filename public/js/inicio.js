@@ -44,10 +44,6 @@ function frequentes(lista = []) {
 conectar({
   aoEstado: s => {
     caixa("capaSeries", "infoSeries", s, "Nenhuma série na votação agora.");
-    caixa("capaJogos", "infoJogos", s.entre, "Nenhum jogo curto na lista agora.");
-    // jogos curtos não têm votação: a caixa só conta quantos estão na lista
-    const curtos = s.entre?.opcoes?.length || 0;
-    if (curtos) $("infoJogos").textContent = `${curtos} ${curtos === 1 ? "jogo curto" : "jogos curtos"} na lista`;
     // série em andamento aparece antes de quem lidera a votação
     const jogando = (s.jogandoAgora || []).map(j => j.nome).join(", ");
     if (jogando) $("infoSeries").textContent = `Jogando agora: ${jogando} · ` + $("infoSeries").textContent;

@@ -153,7 +153,7 @@ function renderSinopses() {
 // "Já tem": Sim e Família Steam contam como sim. Sem coluna de preço, para ninguém achar que é valor cobrado.
 const jaTem = j => j.adquirido === "Sim" || j.adquirido === "Família Steam";
 const anoDe = j => Number((j.lancamento || "").match(/\d{4}/)?.[0]) || null;
-const votacaoDe = j => [j.opcao && "Série", j.entreLives && "Jogo curto", j.frequente && "Frequente"].filter(Boolean).join(" e ") || null;
+const votacaoDe = j => [j.opcao && "Série", j.frequente && "Frequente"].filter(Boolean).join(" e ") || null;
 
 const COLUNAS = [
   { chave: "nome", titulo: "Jogo", valor: j => j.nome },
@@ -165,7 +165,6 @@ const COLUNAS = [
 const FILTROS = {
   "Todos": () => true,
   "Séries na votação": j => j.opcao,
-  "Jogos curtos na votação": j => j.entreLives,
   "Frequentes": j => j.frequente,
   "Já tem": jaTem,
   "Não tem": j => !jaTem(j)
