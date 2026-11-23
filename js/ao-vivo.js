@@ -1,0 +1,133 @@
+// Qual votação esta tela mostra: a principal ou a entre lives (endereço com ?lista=entre)
+// (a página de Jogos do site marca isso no <html data-lista="entre">)
+const PEDIDA = new URLSearchParams(location.search).get("lista") || document.documentElement.dataset.lista;
+export const LISTA = ["entre", "frequentes"].includes(PEDIDA) ? PEDIDA : "principal";
+
+// No PC do Ric as telas falam direto com o servidor; no site público leem a cópia publicada (Hostinger ou, no antigo, Supabase)
+export const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
+// Frequentes não têm votação: a página usa a lista deles no lugar das opções
+const daLista = s => (LISTA === "entre" && s.entre ? { ...s, ...s.entre } : LISTA === "frequentes" ? { ...s, opcoes: s.frequentes || [] } : s);
+
+// Recebe o estado da votação e cada voto na hora em que acontece.
+// Com ?lista=entre, a tela recebe os dados da votação entre lives no lugar da principal.
+// todas: true entrega os votos das duas votações (o site mostra as duas)
+export function conectar({ aoEstado, aoVoto, todas = false }) {
+  if (!LOCAL) return conectarPublico({ aoEstado, aoVoto, todas });
+  const fonte = new EventSource("/api/ao-vivo");
+  fonte.addEventListener("estado", e => aoEstado?.(daLista(JSON.parse(e.data))));
+  fonte.addEventListener("voto", e => {
+    const v = JSON.parse(e.data);
+    if (todas || (v.lista || "principal") === LISTA) aoVoto?.(v);
+  });
+  return fonte;
+}
+
+// Site público. Na Hostinger (lives.temeron.com.br) lê o placar de /api/placar.php a cada 3 s;
+// o site antigo na Vercel continua lendo do Supabase até ser desligado.
+async function conectarPublico({ aoEstado, aoVoto, todas }) {
+  const linhas = {};
+  const ultimoVisto = { principal: 0, entre: 0 };
+
+  // votos novos = nomes novos em "últimos votos"; viram a roleta de nomes como no PC
+  function votosNovos(placar, primeira) {
+    for (const lista of ["principal", "entre"]) {
+      const bloco = lista === "entre" ? placar.entre : placar;
+      const ult = bloco?.ultimos || [];
+      if (!primeira && (todas || lista === LISTA)) {
+        ult.filter(u => u.t > ultimoVisto[lista]).reverse().forEach(u => {
+          const j = bloco.opcoes.find(o => o.id === u.jogoId);
+          if (j) aoVoto?.({ lista, jogoId: u.jogoId, jogo: u.jogo, quem: u.quem, votos: j.votos, t: u.t });
+        });
+      }
+      ultimoVisto[lista] = Math.max(ultimoVisto[lista], ...ult.map(u => u.t), 0);
+    }
+  }
+  function aplicar(id, dados, primeira) {
+    linhas[id] = dados;
+    if (id === "placar") votosNovos(dados, primeira);
+    if (linhas.placar) aoEstado?.(daLista({ ...linhas.placar, biblioteca: linhas.biblioteca || [] }));
+  }
+
+  if (!location.hostname.endsWith("vercel.app")) {
+    let visto = null, primeira = true;
+    async function buscar() {
+      try {
+        const r = await fetch("/api/placar.php?t=" + Date.now(), { cache: "no-store" });
+        const d = r.ok ? await r.json() : null;
+        if (d?.atualizado && d.atualizado !== visto) {
+          visto = d.atualizado;
+          if (d.biblioteca) aplicar("biblioteca", d.biblioteca, primeira);
+          if (d.placar) aplicar("placar", d.placar, primeira);
+          primeira = false;
+        }
+      } catch {} // sem internet: tenta de novo na próxima volta
+      setTimeout(buscar, document.hidden ? 15000 : 3000);
+    }
+    await buscar();
+    return null;
+  }
+
+  const { SUPABASE_URL, SUPABASE_CHAVE } = await import("/js/config-publico.js");
+  const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm");
+  const sb = createClient(SUPABASE_URL, SUPABASE_CHAVE);
+  const { data } = await sb.from("estado").select("id,dados");
+  (data || []).sort((a, b) => (a.id === "placar") - (b.id === "placar")).forEach(r => aplicar(r.id, r.dados, true));
+  sb.channel("estado")
+    .on("postgres_changes", { event: "*", schema: "public", table: "estado" }, p => p.new?.id && aplicar(p.new.id, p.new.dados, false))
+    .subscribe();
+  return sb;
+}
+
+// textos que mudam entre as duas votações
+// Séries = jogos longos (votação principal); Jogos = jogos rápidos entre lives
+export const TEXTOS_LISTAS = {
+  principal: { titulo: "Próxima série", pergunta: "Qual a próxima série?", chip: "Série: nome da série", singular: "série" },
+  entre: { titulo: "Jogos curtos", pergunta: "Qual o próximo jogo curto?", chip: "Jogo: nome do jogo", singular: "jogo curto" },
+  frequentes: { titulo: "Frequentes", pergunta: "Os jogos de sempre", chip: "Sempre no canal", singular: "jogo" }
+};
+export const TEXTOS = TEXTOS_LISTAS[LISTA] || TEXTOS_LISTAS.principal;
+
+// quanto da meta o jogo já juntou (0 a 100)
+export function porcentagemMeta(j) {
+  return j.metaVotos ? Math.min(100, Math.floor(j.votos / j.metaVotos * 100)) : 0;
+}
+
+
+// Quem bateu a meta vem primeiro, na ordem em que bateu (essa posição não muda mais);
+// o resto vem por votos.
+export function ordenar(opcoes) {
+  const fila = j => j.ordemMeta ?? Infinity;
+  return [...opcoes].sort((a, b) => (fila(a) === fila(b) ? 0 : fila(a) - fila(b)) || b.votos - a.votos || a.nome.localeCompare(b.nome));
+}
+
+export function el(tag, cls, texto) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (texto != null) e.textContent = texto;
+  return e;
+}
+
+export function iniciais(nome) {
+  return (nome || "?").replace(/[^A-Za-zÀ-ú0-9 ]/g, "").split(" ").filter(Boolean).slice(0, 2).map(p => p[0]).join("").toUpperCase();
+}
+
+// imagem com reserva: se a capa não carregar, mostra as iniciais
+export function capa(url, nome, cls = "capa") {
+  const box = el("div", cls);
+  const reserva = el("span", "capa-reserva", iniciais(nome));
+  box.appendChild(reserva);
+  if (url) {
+    const img = new Image();
+    img.alt = "";
+    img.loading = "lazy";
+    img.onload = () => box.classList.add("carregada");
+    img.onerror = () => img.remove();
+    img.src = url;
+    box.appendChild(img);
+  }
+  return box;
+}
+
+export const CORES_STATUS = {
+  "Pensando": "cinza", "Quero jogar": "laranja", "Jogando": "azul", "Joguei no off": "vermelho", "Feito": "verde"
+};

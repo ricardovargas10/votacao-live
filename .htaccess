@@ -1,0 +1,21 @@
+# Site do Ric Gameplays na Hostinger (lives.temeron.com.br)
+Options -Indexes
+DirectoryIndex index.html
+
+RewriteEngine On
+# endereços sem .html: /series abre series.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.+?)/?$ $1.html [L]
+
+# páginas e scripts sempre frescos depois de cada atualização
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|js|css)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# o painel admin só existe no PC; a pasta .git do deploy não fica à mostra
+RedirectMatch 302 ^/admin/?$ /
+RedirectMatch 404 /\.git

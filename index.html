@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ric Gameplays · Votação</title>
+<link rel="icon" type="image/svg+xml" href="/img/favicon.svg">
+<link rel="alternate icon" type="image/webp" href="/img/ric.webp">
+<link rel="apple-touch-icon" href="/img/ric.webp">
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="container">
+    <a class="marca" href="/"><img src="/img/ric.webp" alt="" width="36" height="36">Ric Gameplays</a>
+    <ul class="nav-links">
+      <li><a href="/series">Séries</a></li>
+      <li><a href="/frequentes">Frequentes</a></li>
+      <li><a href="/biblioteca">Biblioteca</a></li>
+      <li class="menu-telao"><details><summary>Telão</summary><div class="menu-telao-opcoes">
+        <a href="/telao"><b>Séries</b><span>votação dos jogos longos</span></a>
+        <a href="/telao?lista=frequentes"><b>Frequentes</b><span>os jogos de sempre</span></a>
+      </div></details></li>
+    </ul>
+    <span class="selo" id="selo"><span class="ponto"></span><span id="seloTxt">Votação aberta</span></span>
+  </div>
+</nav>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <div class="eyebrow">Votação com RicPoints</div>
+      <h1 class="display">O que o Ric vai jogar?</h1>
+      <p class="lead">Você escolhe com os RicPoints da Twitch. Cada jogo tem uma meta de votos: quando a meta bate, o jogo entra na fila.</p>
+      <div class="botoes"><a class="botao" href="/telao"><span class="ponto-vivo"></span>Telão das séries</a><a class="botao secundario" href="/telao?lista=frequentes">Telão dos frequentes</a></div>
+
+      <div class="caixas">
+        <a class="caixa" href="/series">
+          <div class="capa caixa-capa" id="capaSeries"></div>
+          <div class="corpo">
+            <div class="eyebrow">Jogos longos</div>
+            <h2 class="display">Séries</h2>
+            <p>Jogos de história, jogados em vários episódios. Resgate <span class="chip-voto">Série: nome</span>.</p>
+            <div class="caixa-info" id="infoSeries">Carregando…</div>
+            <span class="caixa-link">Ver a votação das séries →</span>
+          </div>
+        </a>
+        <a class="caixa" href="/frequentes">
+          <div class="capa caixa-capa" id="capaFrequentes"></div>
+          <div class="corpo">
+            <div class="eyebrow">Sempre no canal</div>
+            <h2 class="display">Frequentes</h2>
+            <p>Os jogos que o Ric joga sempre ou de vez em quando. Esses não entram na votação: aparecem nas lives de qualquer jeito.</p>
+            <ul class="lista-frequentes" id="listaFrequentes"></ul>
+            <span class="caixa-link">Ver os frequentes →</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape" id="rodape"></footer>
+
+<script type="module" src="/js/inicio.js"></script>
+<script type="module" src="/js/rodape.js"></script>
+</body>
+</html>
