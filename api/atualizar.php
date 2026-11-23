@@ -18,8 +18,10 @@ if (!is_file($dados . '/.htaccess')) file_put_contents($dados . '/.htaccess', "R
 "); // pasta de dados nunca abre pelo navegador
 $zip = $dados . '/site.zip';
 
-// baixa a branch
-$ch = curl_init('https://codeload.github.com/ricardovargas10/votacao-live/zip/refs/heads/site');
+// baixa o commit exato que o PC acabou de publicar (pelo nome da branch o GitHub às vezes entrega uma cópia antiga)
+$pedido = json_decode(file_get_contents('php://input'), true);
+$sha = is_array($pedido) && is_string($pedido['sha'] ?? null) && preg_match('/^[0-9a-f]{40}$/', $pedido['sha']) ? $pedido['sha'] : 'refs/heads/site';
+$ch = curl_init('https://codeload.github.com/ricardovargas10/votacao-live/zip/' . $sha);
 $fp = fopen($zip, 'w');
 curl_setopt_array($ch, [CURLOPT_FILE => $fp, CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 60, CURLOPT_USERAGENT => 'site-atualizar']);
 $ok = curl_exec($ch);
@@ -54,4 +56,4 @@ foreach (array_diff($antigos, $novos) as $rel) {
   if (strpos($rel, '..') === false && is_file("$raiz/$rel")) { unlink("$raiz/$rel"); $apagados++; }
 }
 file_put_contents($manifesto, json_encode($novos, JSON_UNESCAPED_SLASHES));
-sair(200, ['ok' => true, 'arquivos' => count($novos), 'apagados' => $apagados]);
+sair(200, ['ok' => true, 'versao' => substr($sha, 0, 7), 'arquivos' => count($novos), 'apagados' => $apagados]);
