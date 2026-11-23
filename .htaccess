@@ -19,3 +19,4 @@ RewriteRule ^(.+?)/?$ $1.html [L]
 # o painel admin só existe no PC; a pasta .git do deploy não fica à mostra
 RedirectMatch 302 ^/admin/?$ /
 RedirectMatch 404 /\.git
+RedirectMatch 404 ^/api/dados/
